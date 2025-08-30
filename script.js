@@ -1,18 +1,6 @@
 /* =========================================================
    Editor de XML NF-e — DFSystem  |  JS estável (revisado)
    ========================================================= */
-
-/* ========== Boot seguro dos listeners ========== */
-(function boot(){
-  function $id(id){ return document.getElementById(id); }
-  function on(el, ev, fn){ if (el) el.addEventListener(ev, fn, false); }
-
-  function init(){
-    try {
-      fixStickyTop();
-
-      const file = $id('file');
-      const drop = $id('dropzone');
 /* =========================================================
    Funções auxiliares para formatação de valores monetários
    ========================================================= */
@@ -40,6 +28,19 @@ function formatBRL4(n){
     return 'R$ ' + v.toFixed(4).replace('.',',');
   }
 }
+
+
+/* ========== Boot seguro dos listeners ========== */
+(function boot(){
+  function $id(id){ return document.getElementById(id); }
+  function on(el, ev, fn){ if (el) el.addEventListener(ev, fn, false); }
+
+  function init(){
+    try {
+      fixStickyTop();
+
+      const file = $id('file');
+      const drop = $id('dropzone');
 
 /* =========================================================
    Funções do Editor de XML NF-e
@@ -378,22 +379,6 @@ function renderTable(){
   updateSum();
 }
 
-  // inputs (desktop e mobile)
-  tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
-  tbody.querySelectorAll('input.ucom-input').forEach(inp=> inp.addEventListener('input', onUComChange));
-
-  // toggle do editor mobile (delegado)
-  tbody.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.m-edit-toggle');
-    if (!btn) return;
-    const cell = btn.closest('td');
-    const open = !cell.classList.contains('m-open');
-    cell.classList.toggle('m-open', open);
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-
-  updateSum();
-}
 
 function onCostChange(e){
   const idx = Number(e.target.dataset.idx);
