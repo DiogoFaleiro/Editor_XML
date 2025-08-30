@@ -106,6 +106,7 @@ function formatBRL4(n){
       const file = $id('file');
       const drop = $id('dropzone');
 
+
 /* =========================================================
    Funções do Editor de XML NF-e
    ========================================================= */
@@ -135,6 +136,47 @@ function formatBRL4(n){
     init();
   }
 })();
+
+// Passo 2: Detectando quando o PWA pode ser instalado
+let deferredPrompt;
+const installModal = document.getElementById('installModal');
+const installBtn = document.getElementById('installBtn');
+const dismissBtn = document.getElementById('dismissBtn');
+
+// Detecta se o navegador suporta PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Impede o comportamento padrão
+  e.preventDefault();
+  // Guarda o evento para ser acionado posteriormente
+  deferredPrompt = e;
+
+  // Exibe o modal com a pergunta para instalar o app
+  installModal.style.display = 'block';
+});
+
+// Quando o usuário clicar no botão de instalação
+installBtn.addEventListener('click', () => {
+  // Esconde o modal
+  installModal.style.display = 'none';
+  // Mostra o prompt de instalação
+  deferredPrompt.prompt();
+
+  // Espera o usuário aceitar ou recusar
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('Usuário aceitou a instalação');
+    } else {
+      console.log('Usuário rejeitou a instalação');
+    }
+    deferredPrompt = null;
+  });
+});
+
+// Quando o usuário clicar em "Não, obrigado"
+dismissBtn.addEventListener('click', () => {
+  // Esconde o modal sem fazer nada
+  installModal.style.display = 'none';
+});
 
 /* ========== Sticky thead offset ========== */
 function fixStickyTop() {
