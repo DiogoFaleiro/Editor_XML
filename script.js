@@ -373,9 +373,15 @@ function renderMeta(){
 
 function renderTable() {
   const tbody = document.getElementById('tbody');
-  if (!tbody) return;
+  if (!tbody) {
+    console.error('Elemento tbody não encontrado!');
+    return;  // Previne que o código continue se não encontrar o tbody
+  }
 
   tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
+
+  // Verifique o conteúdo de state.itens
+  console.log('Itens do XML:', state.itens);  // Adicionando log para depuração
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
