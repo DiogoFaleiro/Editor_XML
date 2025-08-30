@@ -119,80 +119,34 @@ function setLoading(on){
 }
 
 async function loadXMLFile(file){
-  try{
+  try {
+    // Exibe o loading
     setLoading(true);
-    const ab = await file.arrayBuffer();
+
+    const ab = await file.arrayBuffer();  // Lê o arquivo como array de bytes
+
+    // Detecta a codificação e faz a leitura do arquivo com o TextDecoder
     let enc = detectEncodingFromProlog(new Uint8Array(ab));
-    if(!['utf-8','utf8','iso-8859-1','windows-1252'].includes(enc)) enc='utf-8';
-    let dec; try{ dec = new TextDecoder(enc); }catch{ dec = new TextDecoder('utf-8'); }
+    if(!['utf-8','utf8','iso-8859-1','windows-1252'].includes(enc)) enc = 'utf-8';
+
+    let dec;
+    try {
+      dec = new TextDecoder(enc);
+    } catch {
+      dec = new TextDecoder('utf-8');
+    }
+
+    // Decodificando o conteúdo do arquivo
     const xmlText = dec.decode(ab);
+
+    // Passa o conteúdo para ser processado
     parseXML(xmlText);
-  }catch(err){
+
+  } catch (err) {
     console.error('[loadXMLFile] erro:', err);
     alert('Erro ao ler arquivo: ' + (err?.message || err));
-  }finally{
-    setLoading(false);
-  }
-}
-
-/* =========================================================
-   Parse do XML
-   ========================================================= */
-function parseXML(xml){
-  try{
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xml, 'application/xml');
-    const perr = doc.querySelector('parsererror');
-    if (perr){
-      console.error('[parseXML] parsererror', perr.textContent);
-      alert('Não foi possível ler o XML da NF-e.');
-      return;
-    }
-    state._doc = doc; state._xmlText = xml;
-
-    // chave
-    let ch=null;
-    const infNFe = doc.getElementsByTagName('infNFe')[0];
-    if(infNFe && infNFe.getAttribute('Id')) ch = infNFe.getAttribute('Id').replace(/^NFe/i,'');
-    if(!ch){ const chEl = doc.getElementsByTagName('chNFe')[0]; if(chEl) ch = chEl.textContent.trim(); }
-    state.chNFe = ch || '';
-
-    // emit, dest, data
-    const emit = doc.getElementsByTagName('emit')[0];
-    const dest = doc.getElementsByTagName('dest')[0];
-    const ide  = doc.getElementsByTagName('ide')[0];
-    state.emit = emit ? textOf(emit,'xNome') : '';
-    state.dest = dest ? textOf(dest,'xNome') : '';
-    const dhEmi = ide ? (textOf(ide,'dhEmi') || textOf(ide,'dEmi')) : '';
-    state.dataEmi = formatDateBR(dhEmi);
-
-    // documento do destinatário
-    const docCNPJ = dest ? textOf(dest,'CNPJ') : '';
-    const docCPF  = dest ? textOf(dest,'CPF')  : '';
-    if (docCNPJ) state.destDoc = { tipo:'CNPJ', valor:soDigitos(docCNPJ) };
-    else if (docCPF) state.destDoc = { tipo:'CPF', valor:soDigitos(docCPF) };
-    else state.destDoc = { tipo:null, valor:null };
-
-    // itens
-    const dets = Array.from(doc.getElementsByTagName('det'));
-    state.itens = dets.map(det=>{
-      const nItem = det.getAttribute('nItem') || '';
-      const prod = det.getElementsByTagName('prod')[0];
-      const cProd = prod ? textOf(prod,'cProd') : '';
-      const xProd = prod ? textOf(prod,'xProd') : '';
-      const uCom  = prod ? textOf(prod,'uCom') : '';
-      const qCom  = toNumber(prod ? textOf(prod,'qCom') : '0');
-      const vUnComNF = toNumber(prod ? textOf(prod,'vUnCom') : '0');
-      const vProdNF  = toNumber(prod ? textOf(prod,'vProd') : '0');
-      const custoUnit = vUnComNF;
-      return {nItem,cProd,xProd,uCom,qCom,vUnComNF,vProdNF,custoUnit};
-    });
-
-    renderMeta();
-    renderTable();
-  }catch(err){
-    console.error('[parseXML] erro:', err);
-    alert('Erro ao interpretar XML: ' + (err?.message || err));
+  } finally {
+    setLoading(false);  // Sempre limpa o loading após a execução
   }
 }
 

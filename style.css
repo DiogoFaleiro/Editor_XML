@@ -164,13 +164,27 @@ input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px
   th.ucom, td.ucom,
   th.costCol, td.costCol{ display:none; }
 
-  /* mostrar o botão “Editar item” SÓ no mobile */
+  /* Esconder o botão "Editar item" no desktop */
+.m-edit-toggle { 
+  display: none;
+}
+
+/* Exibir o botão "Editar item" apenas no mobile */
+@media (max-width:560px){
   .m-edit-toggle{
-    display:inline-flex; align-items:center; gap:6px;
-    margin-top:6px; padding:0; background:transparent; border:0;
-    color:var(--accent); font-size:13px; cursor:pointer; animation:none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--accent);
+    font-size: 13px;
+    cursor: pointer;
+    animation: none;
   }
-  .m-edit-toggle svg{ width:16px; height:16px; }
+}
 
   /* card de edição mobile (aparece somente quando a célula recebe .m-open) */
   td.m-open .mobile-edit{ display:block; }
