@@ -13,6 +13,38 @@
 
       const file = $id('file');
       const drop = $id('dropzone');
+/* =========================================================
+   Funções auxiliares para formatação de valores monetários
+   ========================================================= */
+
+function formatBRL2(n){
+  const v = Number(n || 0);
+  try{
+    return new Intl.NumberFormat('pt-BR',{
+      style:'currency', currency:'BRL',
+      minimumFractionDigits:2, maximumFractionDigits:2
+    }).format(v);
+  }catch{
+    return 'R$ ' + v.toFixed(2).replace('.',',');
+  }
+}
+
+function formatBRL4(n){
+  const v = Number(n || 0);
+  try{
+    return new Intl.NumberFormat('pt-BR',{
+      style:'currency', currency:'BRL',
+      minimumFractionDigits:4, maximumFractionDigits:4
+    }).format(v);
+  }catch{
+    return 'R$ ' + v.toFixed(4).replace('.',',');
+  }
+}
+
+/* =========================================================
+   Funções do Editor de XML NF-e
+   ========================================================= */
+
 
       // Drag & drop (o click para abrir já está inline no HTML)
       on(drop, 'dragover', evtDragOver);
@@ -271,9 +303,12 @@ function renderMeta(){
    UI: tabela (com editor mobile expandível)
    ========================================================= */
 function renderTable(){
-  const tbody = document.getElementById('tbody'); if (!tbody) return;
-  tbody.innerHTML='';
+  const tbody = document.getElementById('tbody'); 
+  if (!tbody) return;
+  
+  tbody.innerHTML='';  // Limpa a tabela antes de preenchê-la com novos dados
 
+  // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx)=>{
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -281,7 +316,7 @@ function renderTable(){
       <td>${it.cProd}</td>
       <td>
         ${it.xProd}
-
+        
         <!-- Botão (mobile) para abrir o editor -->
         <button type="button" class="m-edit-toggle" aria-expanded="false">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +331,7 @@ function renderTable(){
           <div class="row">
             <div>
               <label>Unid.</label>
-              <input type="text" value="${(it.uCom||'').toUpperCase()}"
+              <input type="text" value="${(it.uCom || '').toUpperCase()}"
                      data-idx="${idx}" class="ucom-input" maxlength="8">
             </div>
             <div>
@@ -316,15 +351,32 @@ function renderTable(){
       </td>
 
       <!-- colunas desktop -->
-      <td class="ucom"><input type="text" value="${(it.uCom||'').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
+      <td class="ucom"><input type="text" value="${(it.uCom || '').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
       <td>${formatQty(it.qCom)}</td>
-      <td>${formatBRL(it.vUnComNF)}</td>
-      <td>${formatBRL(it.vProdNF)}</td>
+      <td>${formatBRL4(it.vUnComNF)}</td>  <!-- Usa 4 casas para o valor unitário -->
+      <td>${formatBRL4(it.vProdNF)}</td>  <!-- Usa 4 casas para o valor total -->
       <td class="costCol"><input type="text" inputmode="decimal" value="${numToInput(it.custoUnit)}" data-idx="${idx}" class="cost"></td>
-      <td class="cTotal">${formatBRL((it.qCom||0) * (it.custoUnit||0))}</td>
+      <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Usa 2 casas para o custo total -->
     `;
     tbody.appendChild(tr);
   });
+
+  // Inputs (desktop e mobile)
+  tbody.querySelectorAll('input.cost').forEach(inp => inp.addEventListener('input', onCostChange));
+  tbody.querySelectorAll('input.ucom-input').forEach(inp => inp.addEventListener('input', onUComChange));
+
+  // Toggle do editor mobile (delegado)
+  tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.m-edit-toggle');
+    if (!btn) return;
+    const cell = btn.closest('td');
+    const open = !cell.classList.contains('m-open');
+    cell.classList.toggle('m-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  updateSum();
+}
 
   // inputs (desktop e mobile)
   tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
