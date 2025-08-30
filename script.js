@@ -20,9 +20,12 @@ function parseXML(xml) {
     state._doc = doc; 
     state._xmlText = xml;
 
+    // Verificando se o ID da NFe é encontrado
     let ch = null;
     const infNFe = doc.getElementsByTagName('infNFe')[0];
-    if (infNFe && infNFe.getAttribute('Id')) ch = infNFe.getAttribute('Id').replace(/^NFe/i, '');
+    if (infNFe && infNFe.getAttribute('Id')) {
+      ch = infNFe.getAttribute('Id').replace(/^NFe/i, '');
+    }
     if (!ch) {
       const chEl = doc.getElementsByTagName('chNFe')[0];
       if (chEl) ch = chEl.textContent.trim();
@@ -48,19 +51,23 @@ function parseXML(xml) {
 
     // Extração dos itens do XML
     const dets = Array.from(doc.getElementsByTagName('det'));
+    console.log('Itens extraídos do XML:', dets);  // Log para depuração
+
     state.itens = dets.map(det => {
-      const nItem = det.getAttribute('nItem') || '';
+      const nItem = det.getAttribute('nItem') || '';  // Garantir que nItem seja obtido
       const prod = det.getElementsByTagName('prod')[0];
       const cProd = prod ? textOf(prod, 'cProd') : 'Produto não encontrado';
       const xProd = prod ? textOf(prod, 'xProd') : 'Descrição não encontrada';
-      const uCom = prod ? textOf(prod, 'uCom') : '';
-      const qCom = toNumber(prod ? textOf(prod, 'qCom') : 0);  // Garantir que não seja vazio
-      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : 0);  // Ajuste aqui
-      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : 0);  // Ajuste aqui
+      const uCom = prod ? textOf(prod, 'uCom') : '';  // Unidade
+      const qCom = toNumber(prod ? textOf(prod, 'qCom') : 0);  // Garantir que qCom seja um número
+      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : 0);  // Valor unitário
+      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : 0);  // Valor total
       const custoUnit = vUnComNF;
 
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
+
+    console.log('Itens do estado após extração:', state.itens);  // Log para depuração
 
     renderMeta();  // Atualiza os metadados
     renderTable(); // Renderiza a tabela com os itens
