@@ -4,6 +4,12 @@
 /* 
    Funções auxiliares para formatação de valores monetários
     */
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Seu código que manipula o DOM vai aqui
+  renderTable();  // Chama a função renderTable() após o DOM ser carregado
+});
+
 function parseXML(xml) {
   try {
     const parser = new DOMParser();
@@ -380,15 +386,20 @@ function renderMeta(){
 
 function renderTable() {
   const tbody = document.getElementById('tbody');
+  
+  // Verifica se o tbody existe
   if (!tbody) {
-    console.error('Elemento tbody não encontrado!');
-    return;  // Previne que o código continue se não encontrar o tbody
+    console.error('Elemento <tbody> não encontrado!');
+    return;  // Se não encontrar o tbody, sai da função
+  }
+
+  // Verifica se state.itens não está vazio
+  if (!state.itens || state.itens.length === 0) {
+    console.error('Nenhum item encontrado em state.itens');
+    return;  // Se não houver itens, sai da função
   }
 
   tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
-
-  // Verifique o conteúdo de state.itens
-  console.log('Itens do XML:', state.itens);  // Adicionando log para depuração
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
