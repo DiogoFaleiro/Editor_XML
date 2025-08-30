@@ -70,6 +70,9 @@ input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px
 /* -------- Mobile: editor compacto dentro da descrição -------- */
 .mobile-edit { display: none; }
 
+/* Oculta o botão de edição móvel no desktop */
+.m-edit-toggle { display: none; }
+
 @media (max-width:560px){
   /* esconder colunas desktop de edição */
   th.ucom, td.ucom,
@@ -89,6 +92,51 @@ input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px
     cursor:pointer;
   }
   .m-edit-toggle svg{ width:16px; height:16px; }
+
+  /* Evita rolagem lateral geral */
+html, body { overflow-x: hidden; }
+
+/* Toolbar: permite quebrar linha em telas pequenas */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;     /* quebra para a linha de baixo */
+  align-items: center;
+}
+
+/* Garante que contêineres nunca ultrapassem a largura da tela */
+.panel, .cnpj-card, #tableWrap, table { max-width: 100%; }
+
+/* CNPJ: empilha no mobile e faz o input ocupar 100% */
+@media (max-width: 560px){
+  .cnpj-card{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cnpj-label{ display:block; }
+  .cnpj-input{
+    width: 100%;
+    max-width: 100%;     /* ignora o limite de 280px no mobile */
+  }
+}
+
+@media (max-width: 560px){
+  th, td { padding: 6px 8px; font-size: 13px; }
+}
+
+
+/* Tabela: rolagem horizontal suave no mobile */
+#tableWrap{
+  overflow-x: auto;
+}
+@media (max-width: 560px){
+  #tableWrap{
+    -webkit-overflow-scrolling: touch; /* scroll suave em iOS/Android */
+  }
+  table{
+    min-width: 640px;   /* largura mínima para não “apertar” demais as colunas */
+  }
+}
 
   /* card do editor (só aparece quando aberto) */
   td.m-open .mobile-edit{ display:block; }
