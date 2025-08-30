@@ -386,20 +386,23 @@ function renderMeta(){
 
 function renderTable() {
   const tbody = document.getElementById('tbody');
-  
-  // Verifica se o tbody existe
+
+  // Verifica se o tbody existe no DOM
   if (!tbody) {
     console.error('Elemento <tbody> não encontrado!');
-    return;  // Se não encontrar o tbody, sai da função
+    return;
   }
 
-  // Verifica se state.itens não está vazio
+  // Verifica se o estado contém itens
   if (!state.itens || state.itens.length === 0) {
     console.error('Nenhum item encontrado em state.itens');
-    return;  // Se não houver itens, sai da função
+    return;
   }
 
   tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
+
+  // Verifique o conteúdo de state.itens para debug
+  console.log('Itens do XML:', state.itens);
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
