@@ -244,7 +244,7 @@ function setLoading(on){
   if (el) el.classList.toggle('hidden', !on);
 }
 
-async function loadXMLFile(file){
+async function loadXMLFile(file) {
   try {
     // Exibe o loading
     setLoading(true);
@@ -253,7 +253,7 @@ async function loadXMLFile(file){
 
     // Detecta a codificação e faz a leitura do arquivo com o TextDecoder
     let enc = detectEncodingFromProlog(new Uint8Array(ab));
-    if(!['utf-8','utf8','iso-8859-1','windows-1252'].includes(enc)) enc = 'utf-8';
+    if (!['utf-8', 'utf-16', 'iso-8859-1', 'windows-1252'].includes(enc)) enc = 'utf-8';
 
     let dec;
     try {
@@ -265,12 +265,14 @@ async function loadXMLFile(file){
     // Decodificando o conteúdo do arquivo
     const xmlText = dec.decode(ab);
 
+    // Alerta de sucesso ao carregar o XML
+    alert('XML carregado com sucesso!');
+
     // Passa o conteúdo para ser processado
     parseXML(xmlText);
-
   } catch (err) {
     console.error('[loadXMLFile] erro:', err);
-    alert('Erro ao ler arquivo: ' + (err?.message || err));
+    alert('Erro ao ler o arquivo: ' + (err?.message || err));  // Alerta caso ocorra um erro
   } finally {
     setLoading(false);  // Sempre limpa o loading após a execução
   }
