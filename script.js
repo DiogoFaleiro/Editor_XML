@@ -180,27 +180,33 @@ function mascaraCNPJ(s) {
 function cnpjValido14(s){ return soDigitos(s).length === 14; }
 
 /* =========================================================
-   UI: metas + CNPJ
+   UI: metas + CNPJ (com CHAVE editável)
    ========================================================= */
 function renderMeta(){
   const meta = document.getElementById('meta');
   const parts = [];
-  if (state.chNFe) parts.push(`<div><span>Chave:</span><br><b class="break">${state.chNFe}</b></div>`);
-  if (state.emit)  parts.push(`<div><span>Emitente:</span><br><b>${state.emit}</b></div>`);
-  if (state.dest)  parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
-  if (state.dataEmi) parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
-  if (meta){ meta.innerHTML = parts.join(''); meta.classList.remove('hidden'); }
-    // Listener da chave (editável)
-  const ch = document.getElementById('chKey');
-  if (ch){
-    ch.oninput = (e)=>{
-      const only = (e.target.value||'').replace(/\D+/g,'').slice(0,44);
-      e.target.value = only;
-      state.chNFe = only;
-    };
+
+  // CHAVE (EDITÁVEL)
+  if (state.chNFe) {
+    parts.push(`
+      <div>
+        <span>Chave:</span><br>
+        <input id="chKey" class="meta-input ch" type="text" inputmode="numeric"
+               maxlength="44" value="${state.chNFe}">
+      </div>
+    `);
   }
 
+  if (state.emit)     parts.push(`<div><span>Emitente:</span><br><b>${state.emit}</b></div>`);
+  if (state.dest)     parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
+  if (state.dataEmi)  parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
 
+  if (meta){
+    meta.innerHTML = parts.join('');
+    meta.classList.remove('hidden');
+  }
+
+  // toolbar/tabela visíveis
   const tb = document.getElementById('toolbar'); if (tb) tb.classList.remove('hidden');
   const tw = document.getElementById('tableWrap'); if (tw) tw.classList.remove('hidden');
 
@@ -224,6 +230,16 @@ function renderMeta(){
     } else {
       cWrap.classList.add('hidden');
     }
+  }
+
+  // Listener da CHAVE (mantém só dígitos e atualiza o estado)
+  const ch = document.getElementById('chKey');
+  if (ch){
+    ch.oninput = (e)=>{
+      const only = (e.target.value || '').replace(/\D+/g, '').slice(0,44);
+      e.target.value = only;
+      state.chNFe = only;
+    };
   }
 }
 
@@ -345,24 +361,20 @@ function exportAlteredNFeXML(){
   const ok = confirm('Isto gera uma CÓPIA do XML da NF-e com alterações (custos/unid. e CNPJ do destinatário, se informado). NÃO é fiscalmente válido. Continuar?');
   if(!ok) return;
 
-  const xml = new XMLSerializer().serializeToString(doc);
-  downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
+  const doc = state._doc.cloneNode(true);
+  // ... aqui ficam as alterações nos itens e no CNPJ (setOrCreate, etc.) ...
+
+  // --- final da função ---
   const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
-const xml = new XMLSerializer().serializeToString(doc);
-downloadFile(
-  xmlDecl + xml,
-  fileNameBase() + '_ALTERADA_sem_assinatura.xml',
-  'application/xml;charset=utf-8'
-);
+  const xml = new XMLSerializer().serializeToString(doc);
+  downloadFile(
+    xmlDecl + xml,
+    fileNameBase() + '_ALTERADA_sem_assinatura.xml',
+    'application/xml;charset=utf-8'
+  );
 
-// ⬇️ cole aqui
-setTimeout(limparTudo, 100);
-} // fecha exportAlteredNFeXML()
-
-
-  // Limpa a interface após salvar
-  setTimeout(limparTudo, 100);
-}
+  setTimeout(limparTudo, 100);   // apenas este, dentro da função
+} // <-- fecha exportAlteredNFeXML
 
   const doc = state._doc.cloneNode(true);
 
