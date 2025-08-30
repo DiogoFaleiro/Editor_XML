@@ -13,32 +13,32 @@ async function loadXMLFile(file) {
   try {
     setLoading(true);  // Exibe o loading
 
-    const ab = await file.arrayBuffer();  // Lê o arquivo como array de bytes
+    // Lê o arquivo como array de bytes
+    const ab = await file.arrayBuffer();
 
-    // Detecta a codificação do arquivo
-    let enc = detectEncodingFromProlog(new Uint8Array(ab));
-    if (!['utf-8', 'utf-16', 'iso-8859-1', 'windows-1252'].includes(enc)) enc = 'utf-8';
+    // Detecta a codificação do arquivo, assumindo UTF-8 como padrão
+    const enc = 'utf-8';  // Usando UTF-8 por padrão
 
     let dec;
     try {
-      dec = new TextDecoder(enc);
+      dec = new TextDecoder(enc);  // Usando TextDecoder para UTF-8
     } catch {
-      dec = new TextDecoder('utf-8');
+      dec = new TextDecoder('utf-8');  // Fallback se houver erro
     }
 
     // Decodificando o conteúdo do arquivo
     const xmlText = dec.decode(ab);
 
-    // Alerta de sucesso ao carregar o XML
+    // Alerta de sucesso
     alert('XML carregado com sucesso!');
 
     // Passa o conteúdo para ser processado
     parseXML(xmlText);
   } catch (err) {
     console.error('[loadXMLFile] erro:', err);
-    alert('Erro ao ler o arquivo: ' + (err?.message || err));  // Alerta caso ocorra um erro
+    alert('Erro ao ler o arquivo: ' + (err?.message || err));  // Alerta de erro
   } finally {
-    setLoading(false);  // Sempre limpa o loading após a execução
+    setLoading(false);  // Sempre limpa o loading após execução
   }
 }
 
