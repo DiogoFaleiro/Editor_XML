@@ -1,10 +1,10 @@
-/* =========================================================
+/*
    Editor de XML NF-e — DFSystem  |  JS estável (revisado)
-   ========================================================= */
-/* =========================================================
+    */
+/* 
    Funções auxiliares para formatação de valores monetários
-   ========================================================= */
-function parseXML(xml){
+    */
+function parseXML(xml) {
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, 'application/xml');
@@ -34,8 +34,8 @@ function parseXML(xml){
     const dest = doc.getElementsByTagName('dest')[0];
     const ide = doc.getElementsByTagName('ide')[0];
 
-    state.emit = emit ? textOf(emit, 'xNome') : '';
-    state.dest = dest ? textOf(dest, 'xNome') : '';
+    state.emit = emit ? textOf(emit, 'xNome') : 'Desconhecido';  // Valor padrão
+    state.dest = dest ? textOf(dest, 'xNome') : 'Desconhecido';  // Valor padrão
     const dhEmi = ide ? (textOf(ide, 'dhEmi') || textOf(ide, 'dEmi')) : '';
     state.dataEmi = formatDateBR(dhEmi);
 
@@ -51,13 +51,14 @@ function parseXML(xml){
     state.itens = dets.map(det => {
       const nItem = det.getAttribute('nItem') || '';
       const prod = det.getElementsByTagName('prod')[0];
-      const cProd = prod ? textOf(prod, 'cProd') : '';
-      const xProd = prod ? textOf(prod, 'xProd') : '';
+      const cProd = prod ? textOf(prod, 'cProd') : 'Produto não encontrado';
+      const xProd = prod ? textOf(prod, 'xProd') : 'Descrição não encontrada';
       const uCom = prod ? textOf(prod, 'uCom') : '';
-      const qCom = toNumber(prod ? textOf(prod, 'qCom') : '0');
-      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : '0');
-      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : '0');
+      const qCom = toNumber(prod ? textOf(prod, 'qCom') : 0);  // Garantir que não seja vazio
+      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : 0);  // Ajuste aqui
+      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : 0);  // Ajuste aqui
       const custoUnit = vUnComNF;
+
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
 
@@ -69,28 +70,30 @@ function parseXML(xml){
   }
 }
 
-function formatBRL2(n){
+// Para valores com 2 casas decimais (moeda)
+function formatBRL2(n) {
   const v = Number(n || 0);
-  try{
+  try {
     return new Intl.NumberFormat('pt-BR', {
-      style: 'currency', 
+      style: 'currency',
       currency: 'BRL',
-      minimumFractionDigits: 2,  // Garantir 2 casas decimais
-      maximumFractionDigits: 2   // Garantir 2 casas decimais
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(v);
   } catch {
     return 'R$ ' + v.toFixed(2).replace('.', ',');
   }
 }
 
-function formatBRL4(n){
+// Para valores com 4 casas decimais (moeda)
+function formatBRL4(n) {
   const v = Number(n || 0);
-  try{
+  try {
     return new Intl.NumberFormat('pt-BR', {
-      style: 'currency', 
+      style: 'currency',
       currency: 'BRL',
-      minimumFractionDigits: 4,  // Garantir 4 casas decimais
-      maximumFractionDigits: 4   // Garantir 4 casas decimais
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
     }).format(v);
   } catch {
     return 'R$ ' + v.toFixed(4).replace('.', ',');
@@ -367,23 +370,25 @@ function renderMeta(){
 /* =========================================================
    UI: tabela (com editor mobile expandível)
    ========================================================= */
-   
-function renderTable(){
-  const tbody = document.getElementById('tbody'); 
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
   if (!tbody) return;
-  
-  tbody.innerHTML='';  // Limpa a tabela antes de preenchê-la com novos dados
+
+  tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${it.nItem || (idx+1)}</td>
+      <td>${it.nItem || (idx + 1)}</td>
       <td>${it.cProd}</td>
       <td>${it.xProd}</td>
-      <td>${formatBRL4(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 4 casas -->
-      <td>${formatBRL4(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 4 casas -->
-      <td class="costCol">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
+      <td>${formatBRL2(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 2 casas -->
+      <td>${formatBRL2(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 2 casas -->
+      <td>${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
+      <td>${formatQty(it.qCom)}</td> <!-- Quantidade (inteiro) -->
+      <td>${it.uCom}</td>  <!-- Unidade (pode ser sem casas decimais) -->
     `;
     tbody.appendChild(tr);
   });
