@@ -186,5 +186,12 @@ html, body { overflow-x: hidden; }
   }
 }
 
+/* Garante quebra de linha em textos longos (ex: chave NF-e) */
+.break {
+  word-break: break-all;     /* força quebra em qualquer ponto */
+  overflow-wrap: anywhere;   /* browsers modernos */
+  display: block;            /* ocupa linha inteira */
+}
+
 /* ===== Footer ===== */
 footer{ text-align:center; padding:18px 20px 28px; color:var(--accent); font-size:12px; }
