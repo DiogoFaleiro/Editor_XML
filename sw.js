@@ -6,9 +6,9 @@ self.addEventListener('install', (event) => {
         '/index.html',
         '/style.css',
         '/script.js',
-        '/assets/favicon-192.png',
-        '/assets/favicon-512.png',
-        '/assets/logo.png',
+        '/assets/favicon-192.png',  // Verifique o caminho do arquivo
+        '/assets/favicon-512.png',  // Verifique o caminho do arquivo
+        '/assets/logo.png'          // Verifique o caminho do arquivo
       ]);
     })
   );

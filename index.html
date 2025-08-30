@@ -139,16 +139,16 @@
 </div>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    // Verifica se o navegador suporta Service Workers
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').then((registration) => {
-        console.log('Service Worker registrado com sucesso:', registration);
-      }).catch((error) => {
-        console.log('Falha ao registrar o Service Worker:', error);
-      });
+ if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Ajuste o caminho do Service Worker para refletir a subpasta
+    navigator.serviceWorker.register('/Editor_XML/sw.js').then((registration) => {
+      console.log('Service Worker registrado com sucesso:', registration);
+    }).catch((error) => {
+      console.log('Falha ao registrar o Service Worker:', error);
     });
-  }
+  });
+}
 </script>
 
 </body>
