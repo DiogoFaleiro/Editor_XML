@@ -93,7 +93,12 @@ button.secondary{ background:#fff; color:var(--fg); border:1px solid var(--line)
 }
 
 table{ width:100%; border-collapse:collapse; margin-top:14px; background:var(--card); }
-thead th{ position:sticky; top:var(--thead-top,118px); background:var(--card); }
+thead th{
+  position: sticky;
+  top: 0;            /* gruda no topo do container de rolagem */
+  background: var(--card);
+  z-index: 1;
+}
 th,td{ border-bottom:1px solid var(--line); padding:8px 10px; font-size:14px; }
 tbody tr:hover{ background:#fafafe; }
 input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
