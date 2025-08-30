@@ -1,5 +1,5 @@
 /* =========================================================
-   Editor de XML NF-e — DFSystem  |  JS final estável
+   Editor de XML NF-e — DFSystem  |  JS estável (revisado)
    ========================================================= */
 
 /* ========== Boot seguro dos listeners ========== */
@@ -14,7 +14,7 @@
       const file = $id('file');
       const drop = $id('dropzone');
 
-      // Drag & drop (o click pra abrir já está inline no HTML)
+      // Drag & drop (o click para abrir já está inline no HTML)
       on(drop, 'dragover', evtDragOver);
       on(drop, 'dragleave', evtDragLeave);
       on(drop, 'drop', evtDrop);
@@ -22,7 +22,6 @@
       // Seleção pelo input
       on(file, 'change', (e)=>{
         const f = e.target.files && e.target.files[0];
-        console.log('[file change]', f && f.name);
         if (f) loadXMLFile(f);
       });
 
@@ -72,7 +71,6 @@ function evtDrop(e){
   const dz = document.getElementById('dropzone');
   if (dz) dz.classList.remove('drag');
   const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-  console.log('[drop]', f && f.name);
   if (f) loadXMLFile(f);
 }
 
@@ -172,7 +170,7 @@ function mascaraCNPJ(s) {
   const d = soDigitos(s).slice(0,14);
   let out = d;
   if (d.length > 2)  out = d.slice(0,2) + '.' + d.slice(2);
-  if (d.length > 5)  out = out.slice(0,6) + '.' + d.slice(5);
+  if (d.length > 5)  out = out.slice(0,6) + '.' + out.slice(5);
   if (d.length > 8)  out = out.slice(0,10) + '/' + d.slice(8);
   if (d.length > 12) out = out.slice(0,15) + '-' + d.slice(12);
   return out;
@@ -186,7 +184,6 @@ function renderMeta(){
   const meta = document.getElementById('meta');
   const parts = [];
 
-  // CHAVE (EDITÁVEL)
   if (state.chNFe) {
     parts.push(`
       <div>
@@ -196,7 +193,6 @@ function renderMeta(){
       </div>
     `);
   }
-
   if (state.emit)     parts.push(`<div><span>Emitente:</span><br><b>${state.emit}</b></div>`);
   if (state.dest)     parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
   if (state.dataEmi)  parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
@@ -206,7 +202,6 @@ function renderMeta(){
     meta.classList.remove('hidden');
   }
 
-  // toolbar/tabela visíveis
   const tb = document.getElementById('toolbar'); if (tb) tb.classList.remove('hidden');
   const tw = document.getElementById('tableWrap'); if (tw) tw.classList.remove('hidden');
 
@@ -297,7 +292,7 @@ function renderTable(){
       <td>${formatBRL(it.vUnComNF)}</td>
       <td>${formatBRL(it.vProdNF)}</td>
       <td class="costCol"><input type="text" inputmode="decimal" value="${numToInput(it.custoUnit)}" data-idx="${idx}" class="cost"></td>
-      <td class="cTotal">${formatBRL(it.qCom * it.custoUnit)}</td>
+      <td class="cTotal">${formatBRL((it.qCom||0) * (it.custoUnit||0))}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -362,21 +357,6 @@ function exportAlteredNFeXML(){
   if(!ok) return;
 
   const doc = state._doc.cloneNode(true);
-  // ... aqui ficam as alterações nos itens e no CNPJ (setOrCreate, etc.) ...
-
-  // --- final da função ---
-  const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
-  const xml = new XMLSerializer().serializeToString(doc);
-  downloadFile(
-    xmlDecl + xml,
-    fileNameBase() + '_ALTERADA_sem_assinatura.xml',
-    'application/xml;charset=utf-8'
-  );
-
-  setTimeout(limparTudo, 100);   // apenas este, dentro da função
-} // <-- fecha exportAlteredNFeXML
-
-  const doc = state._doc.cloneNode(true);
 
   // Atualiza itens
   const byNItem = new Map(state.itens.map(it=>[String(it.nItem||''),it]));
@@ -401,9 +381,12 @@ function exportAlteredNFeXML(){
     }
   }
 
+  // --- final da função: serializa, baixa e limpa a UI ---
   const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
   const xml = new XMLSerializer().serializeToString(doc);
   downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
+
+  setTimeout(limparTudo, 100);
 }
 
 /* =========================================================
