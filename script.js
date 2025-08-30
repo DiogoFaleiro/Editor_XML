@@ -4,6 +4,70 @@
 /* =========================================================
    Funções auxiliares para formatação de valores monetários
    ========================================================= */
+function parseXML(xml){
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'application/xml');
+    const perr = doc.querySelector('parsererror');
+    
+    if (perr) {
+      console.error('[parseXML] parsererror', perr.textContent);
+      alert('Não foi possível ler o XML da NF-e.');
+      return;
+    }
+
+    // Extração de dados do XML
+    state._doc = doc; 
+    state._xmlText = xml;
+
+    let ch = null;
+    const infNFe = doc.getElementsByTagName('infNFe')[0];
+    if (infNFe && infNFe.getAttribute('Id')) ch = infNFe.getAttribute('Id').replace(/^NFe/i, '');
+    if (!ch) {
+      const chEl = doc.getElementsByTagName('chNFe')[0];
+      if (chEl) ch = chEl.textContent.trim();
+    }
+    state.chNFe = ch || '';
+
+    // Emissor, destinatário e data
+    const emit = doc.getElementsByTagName('emit')[0];
+    const dest = doc.getElementsByTagName('dest')[0];
+    const ide = doc.getElementsByTagName('ide')[0];
+
+    state.emit = emit ? textOf(emit, 'xNome') : '';
+    state.dest = dest ? textOf(dest, 'xNome') : '';
+    const dhEmi = ide ? (textOf(ide, 'dhEmi') || textOf(ide, 'dEmi')) : '';
+    state.dataEmi = formatDateBR(dhEmi);
+
+    // Documento do destinatário
+    const docCNPJ = dest ? textOf(dest, 'CNPJ') : '';
+    const docCPF = dest ? textOf(dest, 'CPF') : '';
+    if (docCNPJ) state.destDoc = { tipo: 'CNPJ', valor: soDigitos(docCNPJ) };
+    else if (docCPF) state.destDoc = { tipo: 'CPF', valor: soDigitos(docCPF) };
+    else state.destDoc = { tipo: null, valor: null };
+
+    // Extração dos itens do XML
+    const dets = Array.from(doc.getElementsByTagName('det'));
+    state.itens = dets.map(det => {
+      const nItem = det.getAttribute('nItem') || '';
+      const prod = det.getElementsByTagName('prod')[0];
+      const cProd = prod ? textOf(prod, 'cProd') : '';
+      const xProd = prod ? textOf(prod, 'xProd') : '';
+      const uCom = prod ? textOf(prod, 'uCom') : '';
+      const qCom = toNumber(prod ? textOf(prod, 'qCom') : '0');
+      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : '0');
+      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : '0');
+      const custoUnit = vUnComNF;
+      return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
+    });
+
+    renderMeta();  // Atualiza os metadados
+    renderTable(); // Renderiza a tabela com os itens
+  } catch (err) {
+    console.error('[parseXML] erro:', err);
+    alert('Erro ao interpretar XML: ' + (err?.message || err));
+  }
+}
 
 function formatBRL2(n){
   const v = Number(n || 0);
