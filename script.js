@@ -381,19 +381,19 @@ function renderTable() {
   state.itens.forEach((it, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${it.nItem || (idx + 1)}</td>
-      <td>${it.cProd}</td>
-      <td>${it.xProd}</td>
+      <td>${it.nItem || (idx + 1)}</td>  <!-- Número do item -->
+      <td>${it.cProd}</td>  <!-- Código do produto -->
+      <td>${it.xProd}</td>  <!-- Descrição do produto -->
       <td>${formatBRL2(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 2 casas -->
       <td>${formatBRL2(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 2 casas -->
       <td>${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
-      <td>${formatQty(it.qCom)}</td> <!-- Quantidade (inteiro) -->
-      <td>${it.uCom}</td>  <!-- Unidade (pode ser sem casas decimais) -->
+      <td>${formatQty(it.qCom)}</td>  <!-- Quantidade (Inteiro) -->
+      <td>${it.uCom}</td>  <!-- Unidade -->
     `;
     tbody.appendChild(tr);
   });
 
-  // Inputs (desktop e mobile)
+  // Atualiza os inputs (desktop e mobile)
   tbody.querySelectorAll('input.cost').forEach(inp => inp.addEventListener('input', onCostChange));
   tbody.querySelectorAll('input.ucom-input').forEach(inp => inp.addEventListener('input', onUComChange));
 
@@ -407,7 +407,7 @@ function renderTable() {
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 
-  updateSum();
+  updateSum();  // Atualiza a soma total
 }
 
 function onCostChange(e){
@@ -439,9 +439,13 @@ function onUComChange(e){
     twins.forEach(i => { if (i !== e.target) i.value = val; });
   }
 }
-function updateSum(){
-  const total = state.itens.reduce((a,it)=> a + (it.qCom||0)*(it.custoUnit||0), 0);
-  const s = document.getElementById('sum'); if (s) s.textContent = 'Soma dos custos: ' + formatBRL(total);
+// Exemplo de função para somar e formatar
+function updateSum() {
+  let sum = 0;
+  state.itens.forEach(item => {
+    sum += (item.qCom || 0) * (item.custoUnit || 0); // Cálculo da soma
+  });
+  document.getElementById('somaCustos').innerHTML = formatBRL2(sum);  // Aplica a formatação com 2 casas
 }
 
 /* =========================================================
