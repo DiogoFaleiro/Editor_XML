@@ -193,5 +193,24 @@ html, body { overflow-x: hidden; }
   display: block;            /* ocupa linha inteira */
 }
 
+/* Metadados (desktop permanece igual) */
+.info{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px 16px; }
+
+/* Mobile: rolagem horizontal nos metadados */
+@media (max-width:560px){
+  .info{
+    grid-template-columns: none;     /* cancela as 4 colunas fixas */
+    grid-auto-flow: column;          /* coloca os cards lado a lado */
+    grid-auto-columns: minmax(180px, auto); /* largura mínima de cada "card" */
+    overflow-x: auto;                /* ativa a rolagem horizontal */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;             /* espaço p/ a barra de rolagem */
+    border-bottom: 1px dashed var(--line);
+  }
+  .info > div{
+    white-space: nowrap;             /* evita quebra dentro de cada bloco */
+  }
+}
+
 /* ===== Footer ===== */
 footer{ text-align:center; padding:18px 20px 28px; color:var(--accent); font-size:12px; }
