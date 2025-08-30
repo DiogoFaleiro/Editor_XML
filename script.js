@@ -72,24 +72,24 @@ function parseXML(xml){
 function formatBRL2(n){
   const v = Number(n || 0);
   try{
-    return new Intl.NumberFormat('pt-BR',{
-      style:'currency', currency:'BRL',
-      minimumFractionDigits:2, maximumFractionDigits:2
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL',
+      minimumFractionDigits: 2, maximumFractionDigits: 2
     }).format(v);
   }catch{
-    return 'R$ ' + v.toFixed(2).replace('.',',');
+    return 'R$ ' + v.toFixed(2).replace('.', ',');
   }
 }
 
 function formatBRL4(n){
   const v = Number(n || 0);
   try{
-    return new Intl.NumberFormat('pt-BR',{
-      style:'currency', currency:'BRL',
-      minimumFractionDigits:4, maximumFractionDigits:4
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL',
+      minimumFractionDigits: 4, maximumFractionDigits: 4
     }).format(v);
   }catch{
-    return 'R$ ' + v.toFixed(4).replace('.',',');
+    return 'R$ ' + v.toFixed(4).replace('.', ',');
   }
 }
 
@@ -372,10 +372,10 @@ function renderTable(){
       <!-- colunas desktop -->
       <td class="ucom"><input type="text" value="${(it.uCom || '').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
       <td>${formatQty(it.qCom)}</td>
-      <td>${formatBRL4(it.vUnComNF)}</td>  <!-- Usa 4 casas para o valor unitário -->
-      <td>${formatBRL4(it.vProdNF)}</td>  <!-- Usa 4 casas para o valor total -->
+      <td>${formatBRL4(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 4 casas -->
+      <td>${formatBRL4(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 4 casas -->
       <td class="costCol"><input type="text" inputmode="decimal" value="${numToInput(it.custoUnit)}" data-idx="${idx}" class="cost"></td>
-      <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Usa 2 casas para o custo total -->
+      <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
     `;
     tbody.appendChild(tr);
   });
