@@ -190,6 +190,16 @@ function renderMeta(){
   if (state.dest)  parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
   if (state.dataEmi) parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
   if (meta){ meta.innerHTML = parts.join(''); meta.classList.remove('hidden'); }
+    // Listener da chave (editável)
+  const ch = document.getElementById('chKey');
+  if (ch){
+    ch.oninput = (e)=>{
+      const only = (e.target.value||'').replace(/\D+/g,'').slice(0,44);
+      e.target.value = only;
+      state.chNFe = only;
+    };
+  }
+
 
   const tb = document.getElementById('toolbar'); if (tb) tb.classList.remove('hidden');
   const tw = document.getElementById('tableWrap'); if (tw) tw.classList.remove('hidden');
@@ -335,6 +345,25 @@ function exportAlteredNFeXML(){
   const ok = confirm('Isto gera uma CÓPIA do XML da NF-e com alterações (custos/unid. e CNPJ do destinatário, se informado). NÃO é fiscalmente válido. Continuar?');
   if(!ok) return;
 
+  const xml = new XMLSerializer().serializeToString(doc);
+  downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
+  const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
+const xml = new XMLSerializer().serializeToString(doc);
+downloadFile(
+  xmlDecl + xml,
+  fileNameBase() + '_ALTERADA_sem_assinatura.xml',
+  'application/xml;charset=utf-8'
+);
+
+// ⬇️ cole aqui
+setTimeout(limparTudo, 100);
+} // fecha exportAlteredNFeXML()
+
+
+  // Limpa a interface após salvar
+  setTimeout(limparTudo, 100);
+}
+
   const doc = state._doc.cloneNode(true);
 
   // Atualiza itens
@@ -384,13 +413,25 @@ function downloadFile(content, filename, mime){
 
 function limparTudo(){
   state = { chNFe:null, emit:null, dest:null, dataEmi:null, itens:[], _doc:null, _xmlText:'', destDoc:{tipo:null, valor:null} };
-  const ids = ['meta','toolbar','tableWrap','tbody','sum','file','cnpjWrap'];
-  ids.forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (id === 'tbody') el.innerHTML='';
-    else if (id === 'sum') el.textContent='';
-    else if (id === 'file') el.value='';
-    else el.classList.add('hidden');
-  });
+
+  const meta = document.getElementById('meta');
+  if (meta){ meta.innerHTML=''; meta.classList.add('hidden'); }
+
+  const tb = document.getElementById('toolbar');
+  if (tb){ tb.classList.add('hidden'); }
+
+  const tw = document.getElementById('tableWrap');
+  if (tw){ tw.classList.add('hidden'); }
+
+  const tbody = document.getElementById('tbody');
+  if (tbody){ tbody.innerHTML=''; }
+
+  const sum = document.getElementById('sum');
+  if (sum){ sum.textContent=''; }
+
+  const cWrap = document.getElementById('cnpjWrap');
+  if (cWrap){ cWrap.classList.add('hidden'); }
+
+  const file = document.getElementById('file');
+  if (file){ file.value=''; }
 }
