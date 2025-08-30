@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,123 +41,103 @@
 </head>
 
 <body class="big">
-<header>
-  <div class="title-wrap">
-    <h1>Editor de Custo por Item — XML NF-e</h1>
-    <p class="desc">
-      Edite <b>preço de custo</b> e <b>unidade de medida</b> por item e salve uma
-      <b>cópia da NF-e alterada</b> para uso interno (sem assinatura).
+  <header>
+    <div class="title-wrap">
+      <h1>Editor de Custo por Item — XML NF-e</h1>
+      <p class="desc">
+        Edite <b>preço de custo</b> e <b>unidade de medida</b> por item e salve uma
+        <b>cópia da NF-e alterada</b> para uso interno (sem assinatura).
+      </p>
+    </div>
+    <div class="brand">
+      <img src="assets/logo.png" alt="DFSystem Soluções Empresariais">
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div id="dropzone" class="row"
+           onclick="document.getElementById('file').click()"
+           ondragover="evtDragOver(event)" ondragleave="evtDragLeave(event)" ondrop="evtDrop(event)">
+        <div class="grow">
+          <b>Abra um XML da NF-e</b><br>
+          <span class="help">Clique aqui ou arraste o arquivo .xml. Suporta &lt;nfeProc&gt; e &lt;NFe&gt; (v4.00).</span>
+        </div>
+        <!-- Botão Importar XML -->
+        <div>
+          <span class="btn-import">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                    stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Importar XML
+          </span>
+        </div>
+        <!-- input com fallback de leitura -->
+        <input id="file" type="file" accept=".xml"
+               onchange="if (this.files && this.files[0]) loadXMLFile(this.files[0])">
+      </div>
+
+      <!-- Indicador de carregamento -->
+      <div id="loading" class="loading hidden">Carregando XML…</div>
+
+      <!-- Metadados -->
+      <div id="meta" class="info hidden" aria-live="polite"></div>
+
+      <!-- CNPJ destinatário -->
+      <div id="cnpjWrap" class="panel hidden cnpj-card">
+        <label for="cnpjDest" class="cnpj-label">CNPJ do destinatário:</label>
+        <input id="cnpjDest" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" class="cnpj-input">
+        <small id="cnpjHint" class="help cnpj-hint">Digite 14 dígitos.</small>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar hidden" id="toolbar">
+        <button onclick="exportAlteredNFeXML()">Salvar XML alterado (uso interno)</button>
+        <button class="secondary" onclick="limparTudo()">Limpar</button>
+        <div class="spacer"></div>
+        <div class="sum" id="sum"></div>
+      </div>
+
+      <!-- Tabela -->
+      <div id="tableWrap" class="hidden">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>#</th><th>Código</th><th>Descrição</th>
+              <th class="ucom">Unid.</th><th>Qtd</th>
+              <th>Vlr Unit. NF-e</th><th>Vlr Total NF-e</th>
+              <th class="costCol">Preço de Custo (unit.)</th><th>Custo Total</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="foot">
+          Dica: altere <i>Preço de Custo (unit.)</i> e, se necessário, a <i>Unid.</i>. O total é calculado (Qtd × Custo).
+        </div>
+      </div>
+    </div>
+
+    <p class="help warn">
+      ⚠️ Alterar um XML de NF-e autorizado invalida a assinatura. O arquivo salvo aqui é apenas para
+      <b>uso interno</b> (import no seu sistema), <b>não</b> é documento fiscal.
     </p>
-  </div>
-  <div class="brand">
-    <img src="assets/logo.png" alt="DFSystem Soluções Empresariais">
-  </div>
-</header>
+  </main>
 
-<main>
-  <div class="panel">
-    <div id="dropzone" class="row"
-         onclick="document.getElementById('file').click()"
-         ondragover="evtDragOver(event)" ondragleave="evtDragLeave(event)" ondrop="evtDrop(event)">
-      <div class="grow">
-        <b>Abra um XML da NF-e</b><br>
-        <span class="help">Clique aqui ou arraste o arquivo .xml. Suporta &lt;nfeProc&gt; e &lt;NFe&gt; (v4.00).</span>
-      </div>
-      <!-- Botão Importar XML -->
-      <div>
-        <span class="btn-import">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                  stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Importar XML
-        </span>
-      </div>
-      <!-- input com fallback de leitura -->
-      <input id="file" type="file" accept=".xml"
-             onchange="if (this.files && this.files[0]) loadXMLFile(this.files[0])">
-    </div>
+  <footer>
+    By <b>Diogo Faleiro</b> — © 2025
+  </footer>
 
-    <!-- Indicador de carregamento -->
-    <div id="loading" class="loading hidden">Carregando XML…</div>
+  <script src="script.js" defer></script>
 
-    <!-- Metadados -->
-    <div id="meta" class="info hidden" aria-live="polite"></div>
-
-    <!-- CNPJ destinatário -->
-    <div id="cnpjWrap" class="panel hidden cnpj-card">
-      <label for="cnpjDest" class="cnpj-label">CNPJ do destinatário:</label>
-      <input id="cnpjDest" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" class="cnpj-input">
-      <small id="cnpjHint" class="help cnpj-hint">Digite 14 dígitos.</small>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar hidden" id="toolbar">
-      <button onclick="exportAlteredNFeXML()">Salvar XML alterado (uso interno)</button>
-      <button class="secondary" onclick="limparTudo()">Limpar</button>
-      <div class="spacer"></div>
-      <div class="sum" id="sum"></div>
-    </div>
-
-    <!-- Tabela -->
-    <div id="tableWrap" class="hidden">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th>#</th><th>Código</th><th>Descrição</th>
-            <th class="ucom">Unid.</th><th>Qtd</th>
-            <th>Vlr Unit. NF-e</th><th>Vlr Total NF-e</th>
-            <th class="costCol">Preço de Custo (unit.)</th><th>Custo Total</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-      <div class="foot">
-        Dica: altere <i>Preço de Custo (unit.)</i> e, se necessário, a <i>Unid.</i>. O total é calculado (Qtd × Custo).
-      </div>
+  <!-- Modal de notificação de instalação -->
+  <div id="installModal" class="install-modal">
+    <div class="install-modal-content">
+      <p>Gostaria de adicionar este aplicativo à sua tela inicial?</p>
+      <button id="installBtn" class="install-btn">Adicionar à Tela Inicial</button>
+      <button id="dismissBtn" class="dismiss-btn">Não, obrigado</button>
     </div>
   </div>
-
-  <p class="help warn">
-    ⚠️ Alterar um XML de NF-e autorizado invalida a assinatura. O arquivo salvo aqui é apenas para
-    <b>uso interno</b> (import no seu sistema), <b>não</b> é documento fiscal.
-  </p>
-</main>
-
-<footer>
-  By <b>Diogo Faleiro</b> — © 2025
-</footer>
-
-<script src="script.js" defer></script>
-
-<!-- Modal de notificação de instalação -->
-<div id="installModal" class="install-modal">
-  <div class="install-modal-content">
-    <p>Gostaria de adicionar este aplicativo à sua tela inicial?</p>
-    <button id="installBtn" class="install-btn">Adicionar à Tela Inicial</button>
-    <button id="dismissBtn" class="dismiss-btn">Não, obrigado</button>
-  </div>
-</div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Registro do Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/Editor_XML/sw.js')  // Caminho correto para a subpasta
-          .then((registration) => {
-            console.log('Service Worker registrado com sucesso:', registration);
-          })
-          .catch((error) => {
-            console.log('Falha ao registrar o Service Worker:', error);
-          });
-      });
-    }
-
-    // Função renderTable() chamada após o carregamento do DOM
-    renderTable();
-  });
-</script>
 
 </body>
 </html>
