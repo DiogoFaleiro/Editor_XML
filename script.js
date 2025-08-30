@@ -1,55 +1,15 @@
-// Função para registrar o Service Worker e configurar o PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/Editor_XML/sw.js')  // Caminho correto para o SW
-      .then((registration) => {
-        console.log('Service Worker registrado com sucesso:', registration);
-      })
-      .catch((error) => {
-        console.log('Falha ao registrar o Service Worker:', error);
-      });
-  });
-}
+/*
+   Editor de XML NF-e — DFSystem  |  JS estável (revisado)
+    */
+/* 
+   Funções auxiliares para formatação de valores monetários
+    */
 
-// Função para mostrar ou esconder o indicador de carregamento
-function setLoading(isLoading) {
-  const loadingElement = document.getElementById('loading');
-  if (isLoading) {
-    loadingElement.classList.remove('hidden');
-  } else {
-    loadingElement.classList.add('hidden');
-  }
-}
+document.addEventListener('DOMContentLoaded', function() {
+  // Seu código que manipula o DOM vai aqui
+  renderTable();  // Chama a função renderTable() após o DOM ser carregado
+});
 
-// Função para carregar e processar o XML
-async function loadXMLFile(file) {
-  try {
-    setLoading(true);  // Exibe o loading
-
-    // Lê o arquivo como array de bytes
-    const ab = await file.arrayBuffer();
-
-    // Usar UTF-8 como padrão para decodificar
-    const enc = 'utf-8';
-    let dec = new TextDecoder(enc);
-
-    // Decodificando o conteúdo do arquivo
-    const xmlText = dec.decode(ab);
-
-    // Alerta de sucesso
-    alert('XML carregado com sucesso!');
-
-    // Passa o conteúdo para ser processado
-    parseXML(xmlText);
-  } catch (err) {
-    console.error('[loadXMLFile] erro:', err);
-    alert('Erro ao ler o arquivo: ' + (err?.message || err));
-  } finally {
-    setLoading(false);  // Sempre limpa o loading após execução
-  }
-}
-
-// Função para processar o XML e extrair os dados
 function parseXML(xml) {
   try {
     const parser = new DOMParser();
@@ -66,9 +26,12 @@ function parseXML(xml) {
     state._doc = doc; 
     state._xmlText = xml;
 
+    // Verificando se o ID da NFe é encontrado
     let ch = null;
     const infNFe = doc.getElementsByTagName('infNFe')[0];
-    if (infNFe && infNFe.getAttribute('Id')) ch = infNFe.getAttribute('Id').replace(/^NFe/i, '');
+    if (infNFe && infNFe.getAttribute('Id')) {
+      ch = infNFe.getAttribute('Id').replace(/^NFe/i, '');
+    }
     if (!ch) {
       const chEl = doc.getElementsByTagName('chNFe')[0];
       if (chEl) ch = chEl.textContent.trim();
@@ -80,8 +43,8 @@ function parseXML(xml) {
     const dest = doc.getElementsByTagName('dest')[0];
     const ide = doc.getElementsByTagName('ide')[0];
 
-    state.emit = emit ? textOf(emit, 'xNome') : 'Desconhecido';
-    state.dest = dest ? textOf(dest, 'xNome') : 'Desconhecido';
+    state.emit = emit ? textOf(emit, 'xNome') : 'Desconhecido';  // Valor padrão
+    state.dest = dest ? textOf(dest, 'xNome') : 'Desconhecido';  // Valor padrão
     const dhEmi = ide ? (textOf(ide, 'dhEmi') || textOf(ide, 'dEmi')) : '';
     state.dataEmi = formatDateBR(dhEmi);
 
@@ -94,37 +57,343 @@ function parseXML(xml) {
 
     // Extração dos itens do XML
     const dets = Array.from(doc.getElementsByTagName('det'));
+    console.log('Itens extraídos do XML:', dets);  // Log para depuração
+
     state.itens = dets.map(det => {
-      const nItem = det.getAttribute('nItem') || '';
+      const nItem = det.getAttribute('nItem') || '';  // Garantir que nItem seja obtido
       const prod = det.getElementsByTagName('prod')[0];
       const cProd = prod ? textOf(prod, 'cProd') : 'Produto não encontrado';
       const xProd = prod ? textOf(prod, 'xProd') : 'Descrição não encontrada';
-      const uCom = prod ? textOf(prod, 'uCom') : '';
-      const qCom = toNumber(prod ? textOf(prod, 'qCom') : 0);
-      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : 0);
-      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : 0);
+      const uCom = prod ? textOf(prod, 'uCom') : '';  // Unidade
+      const qCom = toNumber(prod ? textOf(prod, 'qCom') : 0);  // Garantir que qCom seja um número
+      const vUnComNF = toNumber(prod ? textOf(prod, 'vUnCom') : 0);  // Valor unitário
+      const vProdNF = toNumber(prod ? textOf(prod, 'vProd') : 0);  // Valor total
       const custoUnit = vUnComNF;
 
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
 
-    renderMeta();
-    renderTable(); // Atualiza a tabela com os itens
+    console.log('Itens do estado após extração:', state.itens);  // Log para depuração
+
+    renderMeta();  // Atualiza os metadados
+    renderTable(); // Renderiza a tabela com os itens
   } catch (err) {
     console.error('[parseXML] erro:', err);
     alert('Erro ao interpretar XML: ' + (err?.message || err));
   }
 }
 
-// Função renderTable que preenche a tabela com os dados do XML
+// Para valores com 2 casas decimais (moeda)
+function formatBRL2(n) {
+  const v = Number(n || 0);
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(v);
+  } catch {
+    return 'R$ ' + v.toFixed(2).replace('.', ',');
+  }
+}
+
+// Para valores com 4 casas decimais (moeda)
+function formatBRL4(n) {
+  const v = Number(n || 0);
+  try {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4
+    }).format(v);
+  } catch {
+    return 'R$ ' + v.toFixed(4).replace('.', ',');
+  }
+}
+
+
+/* ========== Boot seguro dos listeners ========== */
+(function boot(){
+  function $id(id){ return document.getElementById(id); }
+  function on(el, ev, fn){ if (el) el.addEventListener(ev, fn, false); }
+
+  function init(){
+    try {
+      fixStickyTop();
+
+      const file = $id('file');
+      const drop = $id('dropzone');
+
+
+/* =========================================================
+   Funções do Editor de XML NF-e
+   ========================================================= */
+
+
+      // Drag & drop (o click para abrir já está inline no HTML)
+      on(drop, 'dragover', evtDragOver);
+      on(drop, 'dragleave', evtDragLeave);
+      on(drop, 'drop', evtDrop);
+
+      // Seleção pelo input (além do onchange no HTML)
+      on(file, 'change', (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if (f) loadXMLFile(f);
+      });
+
+      console.log('[init] listeners prontos');
+    } catch (err) {
+      console.error('[init] erro:', err);
+      alert('Erro ao iniciar a página: ' + (err?.message || err));
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once:true });
+  } else {
+    init();
+  }
+})();
+
+// Passo 2: Detectando quando o PWA pode ser instalado
+let deferredPrompt;
+const installModal = document.getElementById('installModal');
+const installBtn = document.getElementById('installBtn');
+const dismissBtn = document.getElementById('dismissBtn');
+
+// Detecta se o navegador suporta PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Impede o comportamento padrão
+  e.preventDefault();
+  // Guarda o evento para ser acionado posteriormente
+  deferredPrompt = e;
+
+  // Exibe o modal com a pergunta para instalar o app
+  installModal.style.display = 'block';
+});
+
+// Quando o usuário clicar no botão de instalação
+installBtn.addEventListener('click', () => {
+  // Esconde o modal
+  installModal.style.display = 'none';
+  // Mostra o prompt de instalação
+  deferredPrompt.prompt();
+
+  // Espera o usuário aceitar ou recusar
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('Usuário aceitou a instalação');
+    } else {
+      console.log('Usuário rejeitou a instalação');
+    }
+    deferredPrompt = null;
+  });
+});
+
+// Quando o usuário clicar em "Não, obrigado"
+dismissBtn.addEventListener('click', () => {
+  // Esconde o modal sem fazer nada
+  installModal.style.display = 'none';
+});
+
+/* ========== Sticky thead offset ========== */
+function fixStickyTop() {
+  const h = (document.querySelector('header') || {}).offsetHeight || 0;
+  document.documentElement.style.setProperty('--thead-top', (h + 20) + 'px');
+}
+window.addEventListener('load', fixStickyTop);
+window.addEventListener('resize', fixStickyTop);
+
+/* ========== Estado ========== */
+let state = {
+  chNFe:null, emit:null, dest:null, dataEmi:null,
+  itens:[], _doc:null, _xmlText:'',
+  destDoc:{ tipo:null, valor:null } // 'CNPJ' | 'CPF' | null
+};
+
+/* =========================================================
+   Drag & drop / arquivo
+   ========================================================= */
+function evtDragOver(e){
+  e.preventDefault();
+  const dz = document.getElementById('dropzone');
+  if (dz) dz.classList.add('drag');
+}
+function evtDragLeave(){
+  const dz = document.getElementById('dropzone');
+  if (dz) dz.classList.remove('drag');
+}
+function evtDrop(e){
+  e.preventDefault();
+  const dz = document.getElementById('dropzone');
+  if (dz) dz.classList.remove('drag');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) loadXMLFile(f);
+}
+
+function detectEncodingFromProlog(bytes){
+  const ascii = new TextDecoder('ascii').decode(bytes.slice(0,200));
+  const m = ascii.match(/encoding\s*=\s*["']([\w\-]+)["']/i);
+  return m ? m[1].toLowerCase() : 'utf-8';
+}
+
+function setLoading(on){
+  const el = document.getElementById('loading');
+  if (el) el.classList.toggle('hidden', !on);
+}
+
+async function loadXMLFile(file){
+  try {
+    // Exibe o loading
+    setLoading(true);
+
+    const ab = await file.arrayBuffer();  // Lê o arquivo como array de bytes
+
+    // Detecta a codificação e faz a leitura do arquivo com o TextDecoder
+    let enc = detectEncodingFromProlog(new Uint8Array(ab));
+    if(!['utf-8','utf8','iso-8859-1','windows-1252'].includes(enc)) enc = 'utf-8';
+
+    let dec;
+    try {
+      dec = new TextDecoder(enc);
+    } catch {
+      dec = new TextDecoder('utf-8');
+    }
+
+    // Decodificando o conteúdo do arquivo
+    const xmlText = dec.decode(ab);
+
+    // Passa o conteúdo para ser processado
+    parseXML(xmlText);
+
+  } catch (err) {
+    console.error('[loadXMLFile] erro:', err);
+    alert('Erro ao ler arquivo: ' + (err?.message || err));
+  } finally {
+    setLoading(false);  // Sempre limpa o loading após a execução
+  }
+}
+
+/* =========================================================
+   Helpers
+   ========================================================= */
+function textOf(scope,tag){ const el=scope.getElementsByTagName(tag)[0]; return el ? (el.textContent||'').trim() : ''; }
+function toNumber(str){ if (str == null) return 0; const s=String(str).replace(/\s+/g,'').replace(',','.'); const n=Number(s); return isFinite(n)?n:0; }
+function formatBRL(n){ try{ return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:10}).format(n||0); }catch{ return (n||0).toFixed(2); } }
+function formatQty(n){ try{ return new Intl.NumberFormat('pt-BR',{maximumFractionDigits:10}).format(n||0); }catch{ return String(n||0); } }
+function formatDateBR(d){ if(!d) return ''; const only=d.slice(0,10); const [y,m,da]=only.split('-'); return (y&&m&&da)?`${da}/${m}/${y}`:d; }
+function numToInput(n){ return (n ?? 0).toString().replace('.', ','); }
+function soDigitos(s){ return (s || '').replace(/\D+/g, ''); }
+function mascaraCNPJ(s){
+  const d = soDigitos(s).slice(0,14);
+  if (d.length <= 2)  return d;
+  if (d.length <= 5)  return d.slice(0,2) + '.' + d.slice(2);
+  if (d.length <= 8)  return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5);
+  if (d.length <= 12) return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8);
+  return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8,12) + '-' + d.slice(12);
+}
+function cnpjValido14(s){ return soDigitos(s).length === 14; }
+
+/* =========================================================
+   UI: metas + CNPJ (com CHAVE editável + copiar)
+   ========================================================= */
+function renderMeta(){
+  const meta = document.getElementById('meta');
+  const parts = [];
+
+  // CHAVE (EDITÁVEL + COPIAR)
+  if (state.chNFe) {
+    parts.push(`
+      <div>
+        <span>Chave:</span><br>
+        <div class="meta-row">
+          <input id="chKey" class="meta-input ch" type="text" inputmode="numeric"
+                 maxlength="44" value="${state.chNFe}">
+          <button type="button" id="copyKey" class="copy-btn" title="Copiar chave">Copiar</button>
+        </div>
+      </div>
+    `);
+  }
+
+  if (state.emit)     parts.push(`<div><span>Emitente:</span><br><b>${state.emit}</b></div>`);
+  if (state.dest)     parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
+  if (state.dataEmi)  parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
+
+  if (meta){
+    meta.innerHTML = parts.join('');
+    meta.classList.remove('hidden');
+  }
+
+  const tb = document.getElementById('toolbar'); if (tb) tb.classList.remove('hidden');
+  const tw = document.getElementById('tableWrap'); if (tw) tw.classList.remove('hidden');
+
+  // CNPJ do destinatário (opcional)
+  const cWrap = document.getElementById('cnpjWrap');
+  const cInput = document.getElementById('cnpjDest');
+  const cHint  = document.getElementById('cnpjHint');
+
+  if (cWrap && cInput && cHint) {
+    if (state.destDoc.tipo === 'CNPJ') {
+      cWrap.classList.remove('hidden');
+      cInput.value = mascaraCNPJ(state.destDoc.valor || '');
+      cInput.oninput = (e)=>{
+        const v = soDigitos(e.target.value);
+        e.target.value = mascaraCNPJ(v);
+        state.destDoc.valor = v;
+        const ok = cnpjValido14(v);
+        cHint.textContent = ok ? 'CNPJ válido (14 dígitos).' : 'Digite 14 dígitos.';
+        cHint.style.color = ok ? '#2d6cdf' : '#b54747';
+        // opcional: manter cursor no fim
+        const pos = e.target.value.length;
+        if (e.target.setSelectionRange) e.target.setSelectionRange(pos, pos);
+      };
+    } else {
+      cWrap.classList.add('hidden');
+    }
+  }
+
+  // Listener da CHAVE (mantém só dígitos e atualiza o estado)
+  const ch = document.getElementById('chKey');
+  if (ch){
+    ch.oninput = (e)=>{
+      const only = (e.target.value || '').replace(/\D+/g, '').slice(0,44);
+      e.target.value = only;
+      state.chNFe = only;
+    };
+  }
+
+  // Copiar chave
+  const copy = document.getElementById('copyKey');
+  if (copy){
+    copy.onclick = async ()=>{
+      try{
+        await navigator.clipboard.writeText(state.chNFe || '');
+        const old = copy.textContent;
+        copy.textContent = 'Copiado!';
+        setTimeout(()=> copy.textContent = old, 1200);
+      }catch(err){
+        alert('Não foi possível copiar a chave.');
+      }
+    };
+  }
+}
+
+/* =========================================================
+   UI: tabela (com editor mobile expandível)
+   ========================================================= */
+
 function renderTable() {
   const tbody = document.getElementById('tbody');
-  
+
+  // Verifica se o tbody existe no DOM
   if (!tbody) {
     console.error('Elemento <tbody> não encontrado!');
     return;
   }
 
+  // Verifica se o estado contém itens
   if (!state.itens || state.itens.length === 0) {
     console.error('Nenhum item encontrado em state.itens');
     return;
@@ -132,64 +401,159 @@ function renderTable() {
 
   tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
 
+  // Verifique o conteúdo de state.itens para debug
+  console.log('Itens do XML:', state.itens);
+
+  // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${it.nItem || (idx + 1)}</td>
-      <td>${it.cProd}</td>
-      <td>${it.xProd}</td>
-      <td>${formatBRL2(it.vUnComNF)}</td>
-      <td>${formatBRL2(it.vProdNF)}</td>
-      <td>${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>
-      <td>${formatQty(it.qCom)}</td>
-      <td>${it.uCom}</td>
+      <td>${it.nItem || (idx + 1)}</td>  <!-- Número do item -->
+      <td>${it.cProd}</td>  <!-- Código do produto -->
+      <td>${it.xProd}</td>  <!-- Descrição do produto -->
+      <td>${formatBRL2(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 2 casas -->
+      <td>${formatBRL2(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 2 casas -->
+      <td>${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
+      <td>${formatQty(it.qCom)}</td>  <!-- Quantidade (Inteiro) -->
+      <td>${it.uCom}</td>  <!-- Unidade -->
     `;
     tbody.appendChild(tr);
   });
 
-  updateSum();
+  // Atualiza os inputs (desktop e mobile)
+  tbody.querySelectorAll('input.cost').forEach(inp => inp.addEventListener('input', onCostChange));
+  tbody.querySelectorAll('input.ucom-input').forEach(inp => inp.addEventListener('input', onUComChange));
+
+  // Toggle do editor mobile (delegado)
+  tbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.m-edit-toggle');
+    if (!btn) return;
+    const cell = btn.closest('td');
+    const open = !cell.classList.contains('m-open');
+    cell.classList.toggle('m-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  updateSum();  // Atualiza a soma total
 }
 
-// Função para calcular a soma dos custos totais
+function onCostChange(e){
+  const idx = Number(e.target.dataset.idx);
+  const n = toNumber(e.target.value);
+  state.itens[idx].custoUnit = n;
+  const tr = e.target.closest('tr');
+
+  if (tr){
+    if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) tr.classList.add('changed'); else tr.classList.remove('changed');
+    const cell = tr.querySelector('.cTotal');
+    if (cell) cell.textContent = formatBRL((state.itens[idx].qCom||0) * n);
+
+    // espelha no “gêmeo”
+    const twins = tr.querySelectorAll(`input.cost[data-idx="${idx}"]`);
+    twins.forEach(i => { if (i !== e.target) i.value = e.target.value; });
+  }
+  updateSum();
+}
+function onUComChange(e){
+  const idx = Number(e.target.dataset.idx);
+  const val = (e.target.value || '').toUpperCase();
+  state.itens[idx].uCom = val;
+  e.target.value = val;
+
+  const tr = e.target.closest('tr');
+  if (tr){
+    const twins = tr.querySelectorAll(`.ucom-input[data-idx="${idx}"]`);
+    twins.forEach(i => { if (i !== e.target) i.value = val; });
+  }
+}
+// Exemplo de função para somar e formatar
 function updateSum() {
   let sum = 0;
   state.itens.forEach(item => {
-    sum += (item.qCom || 0) * (item.custoUnit || 0);
+    sum += (item.qCom || 0) * (item.custoUnit || 0); // Cálculo da soma
   });
-  document.getElementById('somaCustos').innerHTML = formatBRL2(sum);
+  document.getElementById('somaCustos').innerHTML = formatBRL2(sum);  // Aplica a formatação com 2 casas
 }
 
-// Função de limpar todos os dados
-function limparTudo() {
-  state.itens = [];
-  renderTable();
-  alert('Todos os dados foram limpos!');
+/* =========================================================
+   Exportar XML alterado (cópia sem assinatura)
+   ========================================================= */
+function exportAlteredNFeXML(){
+  if(!state._doc){ alert('Abra um XML da NF-e primeiro.'); return; }
+  const ok = confirm('Isto gera uma CÓPIA do XML da NF-e com alterações (custos/unid. e CNPJ do destinatário, se informado). NÃO é fiscalmente válido. Continuar?');
+  if(!ok) return;
+
+  const doc = state._doc.cloneNode(true);
+
+  // Atualiza itens
+  const byNItem = new Map(state.itens.map(it=>[String(it.nItem||''),it]));
+  Array.from(doc.getElementsByTagName('det')).forEach(det=>{
+    const nItem = String(det.getAttribute('nItem') || '');
+    const it = byNItem.get(nItem);
+    if(!it) return;
+    const prod = det.getElementsByTagName('prod')[0];
+    if(!prod) return;
+    setOrCreate(prod,'uCom',  it.uCom || 'UN');
+    setOrCreate(prod,'vUnCom', formatXMLNumber(it.custoUnit, 2));
+    setOrCreate(prod,'vProd',  formatXMLNumber((it.qCom||0)*(it.custoUnit||0), 2));
+  });
+
+  // Atualiza CNPJ do destinatário (se válido)
+  if (state.destDoc && state.destDoc.tipo === 'CNPJ' && cnpjValido14(state.destDoc.valor)) {
+    const dest = doc.getElementsByTagName('dest')[0];
+    if (dest) {
+      const cpf = dest.getElementsByTagName('CPF')[0];
+      if (cpf) cpf.parentNode.removeChild(cpf);
+      setOrCreate(dest, 'CNPJ', state.destDoc.valor);
+    }
+  }
+
+  // --- final da função: serializa, baixa e limpa a UI ---
+  const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
+  const xml = new XMLSerializer().serializeToString(doc);
+  downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
+
+  setTimeout(limparTudo, 100); // limpa tudo após salvar
 }
 
-// Função para exportar XML alterado (uso interno)
-function exportAlteredNFeXML() {
-  const xml = new XMLSerializer().serializeToString(state._doc);
-  const blob = new Blob([xml], { type: 'application/xml' });
+/* =========================================================
+   Utils
+   ========================================================= */
+function setOrCreate(parent, tag, value){
+  let el = parent.getElementsByTagName(tag)[0];
+  if(!el){ el = parent.ownerDocument.createElement(tag); parent.appendChild(el); }
+  el.textContent = value;
+}
+function formatXMLNumber(n, decimals){ const v = Number(n||0); return v.toFixed(decimals).replace(',','.'); }
+function fileNameBase(){ return state.chNFe ? ('NFe_' + state.chNFe) : 'NFe_custos'; }
+function downloadFile(content, filename, mime){
+  const blob = new Blob([content], {type: mime || 'application/octet-stream'});
   const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'NFe_Alterada.xml';
-  a.click();
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },0);
 }
 
-// Função para formatar valores em BRL com 2 casas decimais
-function formatBRL2(value) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-}
+function limparTudo(){
+  state = { chNFe:null, emit:null, dest:null, dataEmi:null, itens:[], _doc:null, _xmlText:'', destDoc:{tipo:null, valor:null} };
 
-// Função para formatar valores inteiros de quantidade
-function formatQty(value) {
-  return Number(value).toFixed(0);  // Arredonda para 0 casas decimais
+  const meta = document.getElementById('meta');
+  if (meta){ meta.innerHTML=''; meta.classList.add('hidden'); }
+
+  const tb = document.getElementById('toolbar');
+  if (tb){ tb.classList.add('hidden'); }
+
+  const tw = document.getElementById('tableWrap');
+  if (tw){ tw.classList.add('hidden'); }
+
+  const tbody = document.getElementById('tbody');
+  if (tbody){ tbody.innerHTML=''; }
+
+  const sum = document.getElementById('sum');
+  if (sum){ sum.textContent=''; }
+
+  const cWrap = document.getElementById('cnpjWrap');
+  if (cWrap){ cWrap.classList.add('hidden'); }
+
+  const file = document.getElementById('file');
+  if (file){ file.value=''; }
 }
