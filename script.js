@@ -1,8 +1,12 @@
-// Garantindo que o código só seja executado depois do DOM estar carregado
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOM completamente carregado');
-  loadXMLFile();  // Chama a função para carregar o XML, exemplo
-});
+// Função para mostrar ou esconder o indicador de carregamento
+function setLoading(isLoading) {
+  const loadingElement = document.getElementById('loading');
+  if (isLoading) {
+    loadingElement.classList.remove('hidden');
+  } else {
+    loadingElement.classList.add('hidden');
+  }
+}
 
 // Função para carregar e processar o XML
 async function loadXMLFile(file) {
@@ -122,6 +126,9 @@ function renderTable() {
   }
 
   tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
+
+  // Verifique o conteúdo de state.itens para debug
+  console.log('Itens do XML:', state.itens);
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
