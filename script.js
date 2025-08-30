@@ -1,33 +1,36 @@
 /* =========================================================
-   Editor de XML NF-e — DFSystem
-   Versão final
+   Editor de XML NF-e — DFSystem  |  JS final estável
    ========================================================= */
 
-/* ===== Boot seguro dos listeners (não quebra se faltar algo) ===== */
+/* ========== Boot seguro dos listeners ========== */
 (function boot(){
   function $id(id){ return document.getElementById(id); }
   function on(el, ev, fn){ if (el) el.addEventListener(ev, fn, false); }
 
   function init(){
-    // Ajusta sticky top ao carregar
-    fixStickyTop();
+    try {
+      fixStickyTop();
 
-    const file = $id('file');
-    const drop = $id('dropzone');
+      const file = $id('file');
+      const drop = $id('dropzone');
 
-    // Drag & drop (o click já está inline no HTML)
-    on(drop, 'dragover', evtDragOver);
-    on(drop, 'dragleave', evtDragLeave);
-    on(drop, 'drop', evtDrop);
+      // Drag & drop (o click pra abrir já está inline no HTML)
+      on(drop, 'dragover', evtDragOver);
+      on(drop, 'dragleave', evtDragLeave);
+      on(drop, 'drop', evtDrop);
 
-    // Seleção pelo input
-    on(file, 'change', (e)=>{
-      const f = e.target.files && e.target.files[0];
-      console.log('[file change]', f && f.name);
-      if (f) loadXMLFile(f);
-    });
+      // Seleção pelo input
+      on(file, 'change', (e)=>{
+        const f = e.target.files && e.target.files[0];
+        console.log('[file change]', f && f.name);
+        if (f) loadXMLFile(f);
+      });
 
-    console.log('[init] listeners prontos');
+      console.log('[init] listeners prontos');
+    } catch (err) {
+      console.error('[init] erro:', err);
+      alert('Erro ao iniciar a página: ' + (err?.message || err));
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -37,17 +40,15 @@
   }
 })();
 
-/* ===== Ajuste do sticky header da tabela ===== */
+/* ========== Sticky thead offset ========== */
 function fixStickyTop() {
-  try{
-    const h = document.querySelector('header')?.offsetHeight || 0;
-    document.documentElement.style.setProperty('--thead-top', (h + 20) + 'px');
-  }catch(e){ console.warn('[fixStickyTop]', e); }
+  const h = (document.querySelector('header') || {}).offsetHeight || 0;
+  document.documentElement.style.setProperty('--thead-top', (h + 20) + 'px');
 }
 window.addEventListener('load', fixStickyTop);
 window.addEventListener('resize', fixStickyTop);
 
-/* ===== Estado ===== */
+/* ========== Estado ========== */
 let state = {
   chNFe:null, emit:null, dest:null, dataEmi:null,
   itens:[], _doc:null, _xmlText:'',
@@ -55,7 +56,7 @@ let state = {
 };
 
 /* =========================================================
-   Drag & drop / arquivo
+   Drag & drop / arquivo (precisam existir em escopo global)
    ========================================================= */
 function evtDragOver(e){
   e.preventDefault();
@@ -97,14 +98,15 @@ async function loadXMLFile(file){
 }
 
 /* =========================================================
-   Parse
+   Parse do XML
    ========================================================= */
 function parseXML(xml){
   try{
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, 'application/xml');
-    if (doc.querySelector('parsererror')){
-      console.error('[parseXML] parsererror', doc.querySelector('parsererror')?.textContent);
+    const perr = doc.querySelector('parsererror');
+    if (perr){
+      console.error('[parseXML] parsererror', perr.textContent);
       alert('Não foi possível ler o XML da NF-e.');
       return;
     }
@@ -175,7 +177,7 @@ function mascaraCNPJ(s) {
   if (d.length > 12) out = out.slice(0,15) + '-' + d.slice(12);
   return out;
 }
-function cnpjValido14(s){ return soDigitos(s).length === 14; } // validação simples
+function cnpjValido14(s){ return soDigitos(s).length === 14; }
 
 /* =========================================================
    UI: metas + CNPJ
@@ -192,7 +194,7 @@ function renderMeta(){
   const tb = document.getElementById('toolbar'); if (tb) tb.classList.remove('hidden');
   const tw = document.getElementById('tableWrap'); if (tw) tw.classList.remove('hidden');
 
-  // Campo CNPJ (opcional)
+  // CNPJ do destinatário (opcional)
   const cWrap = document.getElementById('cnpjWrap');
   const cInput = document.getElementById('cnpjDest');
   const cHint  = document.getElementById('cnpjHint');
@@ -216,7 +218,7 @@ function renderMeta(){
 }
 
 /* =========================================================
-   UI: tabela (com editor mobile na descrição)
+   UI: tabela (com editor mobile expandível)
    ========================================================= */
 function renderTable(){
   const tbody = document.getElementById('tbody'); if (!tbody) return;
@@ -263,7 +265,7 @@ function renderTable(){
         </div>
       </td>
 
-      <!-- colunas desktop (continuam funcionando) -->
+      <!-- colunas desktop -->
       <td class="ucom"><input type="text" value="${(it.uCom||'').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
       <td>${formatQty(it.qCom)}</td>
       <td>${formatBRL(it.vUnComNF)}</td>
@@ -274,11 +276,11 @@ function renderTable(){
     tbody.appendChild(tr);
   });
 
-  // listeners de edição (desktop e mobile)
+  // inputs (desktop e mobile)
   tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
   tbody.querySelectorAll('input.ucom-input').forEach(inp=> inp.addEventListener('input', onUComChange));
 
-  // delegado de clique para abrir/fechar o editor no mobile
+  // toggle do editor mobile (delegado)
   tbody.addEventListener('click', (e)=>{
     const btn = e.target.closest('.m-edit-toggle');
     if (!btn) return;
@@ -286,14 +288,8 @@ function renderTable(){
     const open = !cell.classList.contains('m-open');
     cell.classList.toggle('m-open', open);
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  }, { once:false });
+  });
 
-  updateSum();
-}
-
-  // listeners em TODAS as instâncias (desktop e mobile)
-  tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
-  tbody.querySelectorAll('input.ucom-input').forEach(inp=> inp.addEventListener('input', onUComChange));
   updateSum();
 }
 
@@ -304,29 +300,22 @@ function onCostChange(e){
   const tr = e.target.closest('tr');
 
   if (tr){
-    if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) {
-      tr.classList.add('changed');
-    } else {
-      tr.classList.remove('changed');
-    }
-
+    if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) tr.classList.add('changed'); else tr.classList.remove('changed');
     const cell = tr.querySelector('.cTotal');
     if (cell) cell.textContent = formatBRL((state.itens[idx].qCom||0) * n);
 
-    // mantém espelhado em ambas instâncias do input
+    // espelha no “gêmeo”
     const twins = tr.querySelectorAll(`input.cost[data-idx="${idx}"]`);
     twins.forEach(i => { if (i !== e.target) i.value = e.target.value; });
   }
   updateSum();
 }
-
 function onUComChange(e){
   const idx = Number(e.target.dataset.idx);
   const val = (e.target.value || '').toUpperCase();
   state.itens[idx].uCom = val;
   e.target.value = val;
 
-  // espelha no “gêmeo”
   const tr = e.target.closest('tr');
   if (tr){
     const twins = tr.querySelectorAll(`.ucom-input[data-idx="${idx}"]`);
@@ -361,7 +350,7 @@ function exportAlteredNFeXML(){
     setOrCreate(prod,'vProd',  formatXMLNumber((it.qCom||0)*(it.custoUnit||0), 2));
   });
 
-  // Atualiza CNPJ do destinatário (se existir e for válido)
+  // Atualiza CNPJ do destinatário (se válido)
   if (state.destDoc && state.destDoc.tipo === 'CNPJ' && cnpjValido14(state.destDoc.valor)) {
     const dest = doc.getElementsByTagName('dest')[0];
     if (dest) {
