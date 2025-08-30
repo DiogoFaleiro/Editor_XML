@@ -75,7 +75,8 @@
           Importar XML
         </span>
       </div>
-      <input id="file" type="file" accept=".xml">
+      <input id="file" type="file" accept=".xml"
+       onchange="if (this.files && this.files[0]) loadXMLFile(this.files[0])">
     </div>
 
     <!-- Metadados -->
@@ -125,6 +126,6 @@
   By <b>Diogo Faleiro</b> — © 2025
 </footer>
 
-<script src="script.js"></script>
+<script src="script.js" defer></script>
 </body>
 </html>
