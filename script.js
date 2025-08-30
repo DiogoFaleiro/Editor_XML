@@ -73,10 +73,12 @@ function formatBRL2(n){
   const v = Number(n || 0);
   try{
     return new Intl.NumberFormat('pt-BR', {
-      style: 'currency', currency: 'BRL',
-      minimumFractionDigits: 2, maximumFractionDigits: 2
+      style: 'currency', 
+      currency: 'BRL',
+      minimumFractionDigits: 2,  // Garantir 2 casas decimais
+      maximumFractionDigits: 2   // Garantir 2 casas decimais
     }).format(v);
-  }catch{
+  } catch {
     return 'R$ ' + v.toFixed(2).replace('.', ',');
   }
 }
@@ -85,10 +87,12 @@ function formatBRL4(n){
   const v = Number(n || 0);
   try{
     return new Intl.NumberFormat('pt-BR', {
-      style: 'currency', currency: 'BRL',
-      minimumFractionDigits: 4, maximumFractionDigits: 4
+      style: 'currency', 
+      currency: 'BRL',
+      minimumFractionDigits: 4,  // Garantir 4 casas decimais
+      maximumFractionDigits: 4   // Garantir 4 casas decimais
     }).format(v);
-  }catch{
+  } catch {
     return 'R$ ' + v.toFixed(4).replace('.', ',');
   }
 }
@@ -363,6 +367,7 @@ function renderMeta(){
 /* =========================================================
    UI: tabela (com editor mobile expandível)
    ========================================================= */
+   
 function renderTable(){
   const tbody = document.getElementById('tbody'); 
   if (!tbody) return;
@@ -370,54 +375,15 @@ function renderTable(){
   tbody.innerHTML='';  // Limpa a tabela antes de preenchê-la com novos dados
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
-  state.itens.forEach((it, idx)=>{
+  state.itens.forEach((it, idx) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${it.nItem || (idx+1)}</td>
       <td>${it.cProd}</td>
-      <td>
-        ${it.xProd}
-        
-        <!-- Botão (mobile) para abrir o editor -->
-        <button type="button" class="m-edit-toggle" aria-expanded="false">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L7.5 21H3v-4.5L16.732 3.732z"/>
-          </svg>
-          Editar item
-        </button>
-
-        <!-- Editor mobile (inicialmente oculto) -->
-        <div class="mobile-edit">
-          <div class="row">
-            <div>
-              <label>Unid.</label>
-              <input type="text" value="${(it.uCom || '').toUpperCase()}"
-                     data-idx="${idx}" class="ucom-input" maxlength="8">
-            </div>
-            <div>
-              <label>Custo unit.</label>
-              <input type="text" inputmode="decimal" value="${numToInput(it.custoUnit)}"
-                     data-idx="${idx}" class="cost">
-            </div>
-            <div class="edit-note">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L7.5 21H3v-4.5L16.732 3.732z"/>
-              </svg>
-              Toque para editar
-            </div>
-          </div>
-        </div>
-      </td>
-
-      <!-- colunas desktop -->
-      <td class="ucom"><input type="text" value="${(it.uCom || '').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
-      <td>${formatQty(it.qCom)}</td>
+      <td>${it.xProd}</td>
       <td>${formatBRL4(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 4 casas -->
       <td>${formatBRL4(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 4 casas -->
-      <td class="costCol"><input type="text" inputmode="decimal" value="${numToInput(it.custoUnit)}" data-idx="${idx}" class="cost"></td>
-      <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
+      <td class="costCol">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
     `;
     tbody.appendChild(tr);
   });
@@ -438,7 +404,6 @@ function renderTable(){
 
   updateSum();
 }
-
 
 function onCostChange(e){
   const idx = Number(e.target.dataset.idx);
