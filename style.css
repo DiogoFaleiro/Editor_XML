@@ -1,0 +1,126 @@
+:root {
+  --bg:#eceff3;
+  --fg:#222;
+  --muted:#666;
+  --accent:#0077C8;
+  --card:#fff;
+  --line:#e0e2e8;
+  --radius:12px;
+  --shadow:0 1px 2px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.08);
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;
+  background:var(--bg);
+  color:var(--fg);
+}
+
+/* ===== Header ===== */
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:20px; padding:14px 20px;
+  background:#000; color:#fff;
+  border-bottom:3px solid rgba(0,119,200,.12);
+  position:sticky; top:0; z-index:5;
+}
+header .title-wrap{ flex:1; }
+header h1{ margin:0; font-size:clamp(20px,3vw,28px); }
+header p.desc{ margin:6px 0 0; color:#c9d1d9; font-size:clamp(13px,2.2vw,15px); }
+.brand img{ height:96px; }
+@media (min-width:1200px){ .brand img{ height:110px; } }
+@media (max-width:560px){
+  header{ flex-direction:column; align-items:center; text-align:center; gap:8px; }
+  .brand{ order:-1; } .brand img{ height:72px; }
+}
+
+/* ===== Painel ===== */
+main{ padding:16px; max-width:980px; margin:0 auto; }
+.panel{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+#dropzone{ border:2px dashed #d9e0ea; border-radius:var(--radius); padding:18px; text-align:center; background:#f8fafc; cursor:pointer; }
+#dropzone.drag{ border-color:var(--accent); background:#eef6ff; }
+#file{ display:none; }
+
+/* ===== Botões ===== */
+.btn-import{ display:inline-flex; gap:8px; align-items:center; font-weight:700;
+  padding:10px 16px; border-radius:999px; background:var(--accent); color:#fff;
+  border:1px solid var(--accent); cursor:pointer;
+  animation:pulse 1.8s infinite !important; }
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,119,200,.7);}70%{box-shadow:0 0 0 12px rgba(0,119,200,0);}100%{box-shadow:0 0 0 0 rgba(0,119,200,0);}}
+
+button{ padding:10px 12px; border-radius:10px; background:var(--accent); color:#fff; border:1px solid var(--accent);
+  cursor:pointer; font-size:14px; animation:pulse-soft 2.2s infinite; }
+button.secondary{ background:#fff; color:var(--fg); border:1px solid var(--line); }
+@keyframes pulse-soft{0%{box-shadow:0 0 0 0 rgba(0,119,200,.4);}70%{box-shadow:0 0 0 10px rgba(0,119,200,0);}100%{box-shadow:0 0 0 0 rgba(0,119,200,0);}}
+
+/* ===== Info + Tabela ===== */
+.info{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px 16px; margin-top:14px; }
+table{ width:100%; border-collapse:collapse; margin-top:14px; background:var(--card); }
+thead th{ position:sticky; top:var(--thead-top,118px); background:var(--card); }
+th,td{ border-bottom:1px solid var(--line); padding:8px 10px; font-size:14px; }
+tbody tr:hover{ background:#fafafe; }
+input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
+
+/* ===== CNPJ card ===== */
+.cnpj-card{ display:flex; align-items:center; gap:12px; padding:12px 14px; box-shadow:var(--shadow); margin-top:12px; }
+.cnpj-input{ max-width:280px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:15px; }
+
+/* -------- Mobile: editor compacto dentro da descrição -------- */
+.mobile-edit { display: none; }
+
+@media (max-width:560px){
+  /* esconde colunas de edição na tabela */
+  th.ucom, td.ucom,
+  th.costCol, td.costCol { display: none; }
+
+  /* cartão de edição que aparece dentro da descrição */
+  .mobile-edit{
+    display: block;
+    margin-top: 8px;
+    padding: 8px;
+    background: #f7f9fc;
+    border: 1px dashed #d9e0ea;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .mobile-edit .row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+  .mobile-edit label{
+    font-size: 12.5px;
+    color: #444;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .mobile-edit input{
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+
+  /* aviso com ícone de lápis */
+  .mobile-edit .edit-note{
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .mobile-edit .edit-note svg{
+    width: 16px;   /* tamanho fixo */
+    height: 16px;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+}
+
+/* ===== Footer ===== */
+footer{ text-align:center; padding:18px 20px 28px; color:var(--accent); font-size:12px; }
