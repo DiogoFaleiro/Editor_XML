@@ -19,7 +19,7 @@
       on(drop, 'dragleave', evtDragLeave);
       on(drop, 'drop', evtDrop);
 
-      // Seleção pelo input
+      // Seleção pelo input (além do onchange no HTML)
       on(file, 'change', (e)=>{
         const f = e.target.files && e.target.files[0];
         if (f) loadXMLFile(f);
@@ -55,7 +55,7 @@ let state = {
 };
 
 /* =========================================================
-   Drag & drop / arquivo (precisam existir em escopo global)
+   Drag & drop / arquivo
    ========================================================= */
 function evtDragOver(e){
   e.preventDefault();
@@ -80,18 +80,25 @@ function detectEncodingFromProlog(bytes){
   return m ? m[1].toLowerCase() : 'utf-8';
 }
 
+function setLoading(on){
+  const el = document.getElementById('loading');
+  if (el) el.classList.toggle('hidden', !on);
+}
+
 async function loadXMLFile(file){
   try{
+    setLoading(true);
     const ab = await file.arrayBuffer();
     let enc = detectEncodingFromProlog(new Uint8Array(ab));
     if(!['utf-8','utf8','iso-8859-1','windows-1252'].includes(enc)) enc='utf-8';
     let dec; try{ dec = new TextDecoder(enc); }catch{ dec = new TextDecoder('utf-8'); }
     const xmlText = dec.decode(ab);
-    console.log('[loadXMLFile] ok, encoding:', enc, 'bytes:', ab.byteLength);
     parseXML(xmlText);
   }catch(err){
     console.error('[loadXMLFile] erro:', err);
     alert('Erro ao ler arquivo: ' + (err?.message || err));
+  }finally{
+    setLoading(false);
   }
 }
 
@@ -166,33 +173,37 @@ function formatQty(n){ try{ return new Intl.NumberFormat('pt-BR',{maximumFractio
 function formatDateBR(d){ if(!d) return ''; const only=d.slice(0,10); const [y,m,da]=only.split('-'); return (y&&m&&da)?`${da}/${m}/${y}`:d; }
 function numToInput(n){ return (n ?? 0).toString().replace('.', ','); }
 function soDigitos(s){ return (s || '').replace(/\D+/g, ''); }
-function mascaraCNPJ(s) {
+function mascaraCNPJ(s){
   const d = soDigitos(s).slice(0,14);
-  let out = d;
-  if (d.length > 2)  out = d.slice(0,2) + '.' + d.slice(2);
-  if (d.length > 5)  out = out.slice(0,6) + '.' + out.slice(5);
-  if (d.length > 8)  out = out.slice(0,10) + '/' + d.slice(8);
-  if (d.length > 12) out = out.slice(0,15) + '-' + d.slice(12);
-  return out;
+  if (d.length <= 2)  return d;
+  if (d.length <= 5)  return d.slice(0,2) + '.' + d.slice(2);
+  if (d.length <= 8)  return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5);
+  if (d.length <= 12) return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8);
+  return d.slice(0,2) + '.' + d.slice(2,5) + '.' + d.slice(5,8) + '/' + d.slice(8,12) + '-' + d.slice(12);
 }
 function cnpjValido14(s){ return soDigitos(s).length === 14; }
 
 /* =========================================================
-   UI: metas + CNPJ (com CHAVE editável)
+   UI: metas + CNPJ (com CHAVE editável + copiar)
    ========================================================= */
 function renderMeta(){
   const meta = document.getElementById('meta');
   const parts = [];
 
+  // CHAVE (EDITÁVEL + COPIAR)
   if (state.chNFe) {
     parts.push(`
       <div>
         <span>Chave:</span><br>
-        <input id="chKey" class="meta-input ch" type="text" inputmode="numeric"
-               maxlength="44" value="${state.chNFe}">
+        <div class="meta-row">
+          <input id="chKey" class="meta-input ch" type="text" inputmode="numeric"
+                 maxlength="44" value="${state.chNFe}">
+          <button type="button" id="copyKey" class="copy-btn" title="Copiar chave">Copiar</button>
+        </div>
       </div>
     `);
   }
+
   if (state.emit)     parts.push(`<div><span>Emitente:</span><br><b>${state.emit}</b></div>`);
   if (state.dest)     parts.push(`<div><span>Destinatário:</span><br><b>${state.dest}</b></div>`);
   if (state.dataEmi)  parts.push(`<div><span>Emissão:</span><br><b>${state.dataEmi}</b></div>`);
@@ -221,6 +232,9 @@ function renderMeta(){
         const ok = cnpjValido14(v);
         cHint.textContent = ok ? 'CNPJ válido (14 dígitos).' : 'Digite 14 dígitos.';
         cHint.style.color = ok ? '#2d6cdf' : '#b54747';
+        // opcional: manter cursor no fim
+        const pos = e.target.value.length;
+        if (e.target.setSelectionRange) e.target.setSelectionRange(pos, pos);
       };
     } else {
       cWrap.classList.add('hidden');
@@ -234,6 +248,21 @@ function renderMeta(){
       const only = (e.target.value || '').replace(/\D+/g, '').slice(0,44);
       e.target.value = only;
       state.chNFe = only;
+    };
+  }
+
+  // Copiar chave
+  const copy = document.getElementById('copyKey');
+  if (copy){
+    copy.onclick = async ()=>{
+      try{
+        await navigator.clipboard.writeText(state.chNFe || '');
+        const old = copy.textContent;
+        copy.textContent = 'Copiado!';
+        setTimeout(()=> copy.textContent = old, 1200);
+      }catch(err){
+        alert('Não foi possível copiar a chave.');
+      }
     };
   }
 }
@@ -386,7 +415,7 @@ function exportAlteredNFeXML(){
   const xml = new XMLSerializer().serializeToString(doc);
   downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
 
-  setTimeout(limparTudo, 100);
+  setTimeout(limparTudo, 100); // limpa tudo após salvar
 }
 
 /* =========================================================

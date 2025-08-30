@@ -9,7 +9,17 @@
   --shadow:0 1px 2px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.08);
 }
 
+/* utilidades */
 *{ box-sizing:border-box; }
+.hidden { display: none !important; }
+.break {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  display:block;
+}
+
+html, body { overflow-x: hidden; }
+
 body{
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;
@@ -57,28 +67,82 @@ button.secondary{ background:#fff; color:var(--fg); border:1px solid var(--line)
 
 /* ===== Info + Tabela ===== */
 .info{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px 16px; margin-top:14px; }
+.info b, .info .break{
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  display:block;
+}
+
 table{ width:100%; border-collapse:collapse; margin-top:14px; background:var(--card); }
 thead th{ position:sticky; top:var(--thead-top,118px); background:var(--card); }
 th,td{ border-bottom:1px solid var(--line); padding:8px 10px; font-size:14px; }
 tbody tr:hover{ background:#fafafe; }
 input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
 
+/* ===== inputs meta (ex.: chave) ===== */
+.meta-input{
+  width:100%;
+  max-width:100%;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:6px 8px;
+  font-size:14px;
+}
+.meta-row{ display:flex; align-items:center; gap:8px; margin-top:4px; }
+.copy-btn{
+  padding:6px 10px; font-size:13px; border-radius:8px;
+  background:#fff; color:var(--fg); border:1px solid var(--line);
+  cursor:pointer;
+}
+.copy-btn:active{ transform: translateY(1px); }
+
 /* ===== CNPJ card ===== */
 .cnpj-card{ display:flex; align-items:center; gap:12px; padding:12px 14px; box-shadow:var(--shadow); margin-top:12px; }
 .cnpj-input{ max-width:280px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:15px; }
 
-/* -------- Mobile: editor compacto dentro da descrição -------- */
-.mobile-edit { display: none; }
+/* ===== Loading ===== */
+.loading{
+  margin-top:10px;
+  font-size:14px;
+  color: var(--accent);
+  background:#f1f6ff;
+  border:1px solid #d9e8ff;
+  padding:8px 10px;
+  border-radius:10px;
+}
 
-/* Oculta o botão de edição móvel no desktop */
-.m-edit-toggle { display: none; }
-
+/* -------- Mobile: ajustes responsivos -------- */
+#tableWrap{ overflow-x:auto; }
 @media (max-width:560px){
+  /* Metadados em carrossel com rolagem horizontal */
+  .info{
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(180px, auto);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .info > div{ min-width: 180px; }
+
+  /* Toolbar quebra linha bonitinho */
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  /* CNPJ empilhado */
+  .cnpj-card{ flex-direction: column; align-items: stretch; }
+  .cnpj-input{ width:100%; max-width:100%; }
+
+  /* tabela mais compacta */
+  th, td { padding: 6px 8px; font-size: 13px; }
+  table{ min-width:640px; }
+
   /* esconder colunas desktop de edição */
   th.ucom, td.ucom,
   th.costCol, td.costCol { display:none; }
 
-  /* botão que abre/fecha o editor */
+  /* botão de edição mobile visível só aqui */
   .m-edit-toggle{
     display:inline-flex;
     align-items:center;
@@ -90,58 +154,15 @@ input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px
     color:var(--accent);
     font-size:13px;
     cursor:pointer;
+    animation:none;
   }
   .m-edit-toggle svg{ width:16px; height:16px; }
-
-  /* Evita rolagem lateral geral */
-html, body { overflow-x: hidden; }
-
-/* Toolbar: permite quebrar linha em telas pequenas */
-.toolbar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;     /* quebra para a linha de baixo */
-  align-items: center;
-}
-
-/* Garante que contêineres nunca ultrapassem a largura da tela */
-.panel, .cnpj-card, #tableWrap, table { max-width: 100%; }
-
-/* CNPJ: empilha no mobile e faz o input ocupar 100% */
-@media (max-width: 560px){
-  .cnpj-card{
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .cnpj-label{ display:block; }
-  .cnpj-input{
-    width: 100%;
-    max-width: 100%;     /* ignora o limite de 280px no mobile */
-  }
-}
-
-@media (max-width: 560px){
-  th, td { padding: 6px 8px; font-size: 13px; }
-}
-
-
-/* Tabela: rolagem horizontal suave no mobile */
-#tableWrap{
-  overflow-x: auto;
-}
-@media (max-width: 560px){
-  #tableWrap{
-    -webkit-overflow-scrolling: touch; /* scroll suave em iOS/Android */
-  }
-  table{
-    min-width: 640px;   /* largura mínima para não “apertar” demais as colunas */
-  }
-}
 
   /* card do editor (só aparece quando aberto) */
   td.m-open .mobile-edit{ display:block; }
 
   .mobile-edit{
+    display:none;
     margin-top:8px;
     padding:10px;
     background:#f7f9fc;
@@ -152,7 +173,7 @@ html, body { overflow-x: hidden; }
   }
   .mobile-edit .row{
     display:flex;
-    flex-direction:column;   /* vertical para melhor toque */
+    flex-direction:column;
     gap:10px;
   }
   .mobile-edit label{
@@ -169,8 +190,6 @@ html, body { overflow-x: hidden; }
     font-size:15px;
     background:#fff;
   }
-
-  /* notinha com ícone */
   .mobile-edit .edit-note{
     font-size:12px;
     color:#555;
@@ -186,62 +205,8 @@ html, body { overflow-x: hidden; }
   }
 }
 
-/* Garante quebra de linha em textos longos (ex: chave NF-e) */
-.break {
-  word-break: break-all;     /* força quebra em qualquer ponto */
-  overflow-wrap: anywhere;   /* browsers modernos */
-  display: block;            /* ocupa linha inteira */
-}
-
-/* Metadados (desktop permanece igual) */
-.info{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px 16px; }
-
-/* Mobile: rolagem horizontal nos metadados */
-@media (max-width:560px){
-  .info{
-    grid-template-columns: none;     /* cancela as 4 colunas fixas */
-    grid-auto-flow: column;          /* coloca os cards lado a lado */
-    grid-auto-columns: minmax(180px, auto); /* largura mínima de cada "card" */
-    overflow-x: auto;                /* ativa a rolagem horizontal */
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;             /* espaço p/ a barra de rolagem */
-    border-bottom: 1px dashed var(--line);
-  }
-  .info > div{
-    white-space: nowrap;             /* evita quebra dentro de cada bloco */
-  }
-}
-
-/* Força quebra de linha em textos longos nos metadados */
-.info b, 
-.info .break {
-  word-break: break-all;      /* quebra em qualquer ponto */
-  overflow-wrap: anywhere;    /* browsers modernos */
-  white-space: normal;        /* garante que pode quebrar */
-  display: block;             /* cada valor ocupa sua linha */
-}
-
-/* Inputs nos metadados (ex.: chave) */
-.meta-input{
-  width:100%;
-  max-width:100%;
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:6px 8px;
-  font-size:14px;
-}
-@media (max-width:560px){
-  .meta-input{ font-size:13px; }
-}
-
-/* (já tínhamos) Quebra forçada para textos longos nos metadados */
-.info b, .info .break{
-  word-break: break-all;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  display:block;
-}
-
+/* Desktop: esconde o botão mobile por padrão */
+.m-edit-toggle { display:none; }
 
 /* ===== Footer ===== */
 footer{ text-align:center; padding:18px 20px 28px; color:var(--accent); font-size:12px; }
