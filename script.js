@@ -229,7 +229,17 @@ function renderTable(){
       <td>${it.cProd}</td>
       <td>
         ${it.xProd}
-        <!-- Editor mobile -->
+
+        <!-- Botão (mobile) para abrir o editor -->
+        <button type="button" class="m-edit-toggle" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L7.5 21H3v-4.5L16.732 3.732z"/>
+          </svg>
+          Editar item
+        </button>
+
+        <!-- Editor mobile (inicialmente oculto) -->
         <div class="mobile-edit">
           <div class="row">
             <div>
@@ -252,6 +262,8 @@ function renderTable(){
           </div>
         </div>
       </td>
+
+      <!-- colunas desktop (continuam funcionando) -->
       <td class="ucom"><input type="text" value="${(it.uCom||'').toUpperCase()}" data-idx="${idx}" class="ucom-input" maxlength="8"></td>
       <td>${formatQty(it.qCom)}</td>
       <td>${formatBRL(it.vUnComNF)}</td>
@@ -261,6 +273,23 @@ function renderTable(){
     `;
     tbody.appendChild(tr);
   });
+
+  // listeners de edição (desktop e mobile)
+  tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
+  tbody.querySelectorAll('input.ucom-input').forEach(inp=> inp.addEventListener('input', onUComChange));
+
+  // delegado de clique para abrir/fechar o editor no mobile
+  tbody.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.m-edit-toggle');
+    if (!btn) return;
+    const cell = btn.closest('td');
+    const open = !cell.classList.contains('m-open');
+    cell.classList.toggle('m-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }, { once:false });
+
+  updateSum();
+}
 
   // listeners em TODAS as instâncias (desktop e mobile)
   tbody.querySelectorAll('input.cost').forEach(inp=> inp.addEventListener('input', onCostChange));
@@ -273,24 +302,34 @@ function onCostChange(e){
   const n = toNumber(e.target.value);
   state.itens[idx].custoUnit = n;
   const tr = e.target.closest('tr');
+
   if (tr){
-    if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) tr.classList.add('changed'); else tr.classList.remove('changed');
-    const cell = tr.querySelector('.cTotal'); if (cell) cell.textContent = formatBRL((state.itens[idx].qCom||0) * n);
+    if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) {
+      tr.classList.add('changed');
+    } else {
+      tr.classList.remove('changed');
+    }
+
+    const cell = tr.querySelector('.cTotal');
+    if (cell) cell.textContent = formatBRL((state.itens[idx].qCom||0) * n);
+
     // mantém espelhado em ambas instâncias do input
     const twins = tr.querySelectorAll(`input.cost[data-idx="${idx}"]`);
     twins.forEach(i => { if (i !== e.target) i.value = e.target.value; });
   }
   updateSum();
 }
+
 function onUComChange(e){
   const idx = Number(e.target.dataset.idx);
   const val = (e.target.value || '').toUpperCase();
   state.itens[idx].uCom = val;
   e.target.value = val;
+
   // espelha no “gêmeo”
   const tr = e.target.closest('tr');
   if (tr){
-    const twins = tr.querySelectorAll(`input.ucom-input[data-idx="${idx}"]`);
+    const twins = tr.querySelectorAll(`.ucom-input[data-idx="${idx}"]`);
     twins.forEach(i => { if (i !== e.target) i.value = val; });
   }
 }

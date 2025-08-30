@@ -71,54 +71,70 @@ input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px
 .mobile-edit { display: none; }
 
 @media (max-width:560px){
-  /* esconde colunas de edição na tabela */
+  /* esconder colunas desktop de edição */
   th.ucom, td.ucom,
-  th.costCol, td.costCol { display: none; }
+  th.costCol, td.costCol { display:none; }
 
-  /* cartão de edição que aparece dentro da descrição */
+  /* botão que abre/fecha o editor */
+  .m-edit-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    padding:0;
+    background:transparent;
+    border:0;
+    color:var(--accent);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .m-edit-toggle svg{ width:16px; height:16px; }
+
+  /* card do editor (só aparece quando aberto) */
+  td.m-open .mobile-edit{ display:block; }
+
   .mobile-edit{
-    display: block;
-    margin-top: 8px;
-    padding: 8px;
-    background: #f7f9fc;
-    border: 1px dashed #d9e0ea;
-    border-radius: 10px;
-    font-size: 14px;
+    margin-top:8px;
+    padding:10px;
+    background:#f7f9fc;
+    border:1px dashed #d9e0ea;
+    border-radius:10px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+    font-size:14px;
   }
   .mobile-edit .row{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    align-items: center;
+    display:flex;
+    flex-direction:column;   /* vertical para melhor toque */
+    gap:10px;
   }
   .mobile-edit label{
-    font-size: 12.5px;
-    color: #444;
-    margin-bottom: 4px;
-    display: block;
+    font-size:12.5px;
+    color:#444;
+    margin-bottom:4px;
+    display:block;
   }
   .mobile-edit input{
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    width:100%;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    font-size:15px;
+    background:#fff;
   }
 
-  /* aviso com ícone de lápis */
+  /* notinha com ícone */
   .mobile-edit .edit-note{
-    grid-column: 1 / -1;
-    font-size: 12px;
-    color: #555;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 6px;
+    font-size:12px;
+    color:#555;
+    display:flex;
+    align-items:center;
+    gap:6px;
   }
   .mobile-edit .edit-note svg{
-    width: 16px;   /* tamanho fixo */
-    height: 16px;
-    flex-shrink: 0;
-    display: inline-block;
+    width:16px;
+    height:16px;
+    flex-shrink:0;
+    display:inline-block;
   }
 }
 
