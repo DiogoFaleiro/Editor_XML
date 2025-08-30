@@ -212,5 +212,14 @@ html, body { overflow-x: hidden; }
   }
 }
 
+/* Força quebra de linha em textos longos nos metadados */
+.info b, 
+.info .break {
+  word-break: break-all;      /* quebra em qualquer ponto */
+  overflow-wrap: anywhere;    /* browsers modernos */
+  white-space: normal;        /* garante que pode quebrar */
+  display: block;             /* cada valor ocupa sua linha */
+}
+
 /* ===== Footer ===== */
 footer{ text-align:center; padding:18px 20px 28px; color:var(--accent); font-size:12px; }
