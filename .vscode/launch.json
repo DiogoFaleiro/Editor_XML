@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Debug no Chrome (Live Server)",
+      "url": "http://localhost:5500/Editor_XML/index.html",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Abrir index.html (arquivo local)",
+      "file": "e:\\OneDrive\\11 PASTA DAS EMPRESAS\\Dfsystem Soluções Empresariais\\ADM\\22 PROJETOS WEB\\Editor_XML\\index.html"
+    }
+  ]
+}

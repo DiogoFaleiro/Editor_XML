@@ -73,7 +73,7 @@ function parseXML(xml) {
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
 
-    console.log('Itens do estado após extração:', state.itens);  // Log para depuração
+    console.log('Itens do estado após extração:', state.itens); // Log para depuração
 
     renderMeta();  // Atualiza os metadados
     renderTable(); // Renderiza a tabela com os itens
