@@ -370,14 +370,16 @@ header{
   100% { transform: translateX(110vw) rotate(10deg); }
 }
 
-/* === Header preto → azul com vinheta na logo (lado direito) === */
+/* Header com gradiente forte: preto na logo → azul */
 header{
-  background:
-    radial-gradient(200px 150px at 95% 50%, rgba(0,0,0,.55), rgba(0,0,0,0) 70%),
-    linear-gradient(135deg, #000 0%, #003B73 42%, #0077C8 100%);
+  background: linear-gradient(90deg, #000 0%, #001830 15%, #003B73 45%, #0077C8 100%);
   color:#fff;
   border-bottom:none;
   box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+.brand img{ 
+  filter: drop-shadow(0 3px 12px rgba(0,0,0,.6)); 
 }
 
 .brand img{ filter: drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
