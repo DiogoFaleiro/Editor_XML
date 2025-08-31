@@ -41,8 +41,6 @@ header{
 header .title-wrap{ flex:1; }
 header h1{ margin:0; font-size:clamp(20px,3vw,28px); }
 header p.desc{ margin:6px 0 0; color:#c9d1d9; font-size:clamp(13px,2.2vw,15px); }
-.brand img{ height:96px; }
-@media (min-width:1200px){ .brand img{ height:350px; } }
 @media (max-width:560px){
   header{ flex-direction:column; align-items:center; text-align:center; gap:8px; }
   .brand{ order:-1; } .brand img{ height:250px; }
@@ -462,34 +460,83 @@ td.costCol input{
   25%  { opacity:.9; }
   100% { transform: translateY(-120px) scale(1.6); opacity:0; }
 }
-/* Mantém a altura visual do header */
-header{
-  position: relative;
-  min-height: 120px;          /* altura do header que você quer manter */
-  padding-right: 240px;       /* reserva espaço pro bloco da logo */
+/* === HEADER + LOGO (versão limpa e única) === */
+:root{
+  --logo-desktop: 250px;   /* ajuste aqui o tamanho no desktop */
+  --logo-mobile: 132px;     /* ajuste aqui o tamanho no mobile */
+  --pad-right-desktop: 200px; /* espaço p/ logo à direita */
 }
 
-/* Logo fora do fluxo (não aumenta o header) */
+/* Desktop / telas médias+ */
+header{
+  position: relative;
+  min-height: 120px;
+  padding-right: var(--pad-right-desktop);
+}
 header .brand{
   position: absolute;
   right: 24px;
-  top: 12px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 header .brand img{
-  height: 210px;              /* tamanho grande da logo */
+  height: var(--logo-desktop);
   width: auto;
   object-fit: contain;
 }
 
-/* Responsivo */
-@media (max-width: 560px){
-  header{ 
-    min-height: 172px; 
-    padding-right: 140px;     /* reserva menos espaço no mobile */
+/* === MOBILE: logo 200px no topo + header compacto === */
+@media (max-width:560px){
+  :root{ --logo-mobile: 200px; --logo-top-offset: -4px; } /* ajuste fino (-2 a -8px) */
+
+  /* Header menor e com texto mais perto da logo */
+  header{
+    position: relative;
+    /* quase sem espaço acima; texto começa logo abaixo da logo */
+    padding: 0 12px 8px !important; /* zera o topo */
+    padding-top: calc(env(safe-area-inset-top,0) + var(--logo-mobile) - 36px) !important;
+    
+    /* ^ diminua -20px para -28px se quiser o texto ainda mais perto */
+    text-align: center;
+    min-height: auto !important;
+    padding-right: 0 !important;
   }
+
+  /* Logo absoluta, no topo e centralizada de verdade */
   header .brand{
-    right: 12px;
-    top: 8px;
+    position: absolute !important;
+    top: calc(env(safe-area-inset-top,0) + var(--logo-top-offset)) !important; /* puxa mais pro topo */
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    width: max-content;
+    z-index: 1;
   }
-  header .brand img{ height: 96px; }
+  header .brand img{
+    height: var(--logo-mobile) !important; /* corrigido var() */
+    width: auto !important;
+    max-width: 88vw !important;
+    display: block;
+  }
+
+  /* Texto mais “grudado” e sem respiro extra */
+  header .title-wrap{ max-width: 92vw; margin: 0 auto; }
+  header h1{ margin: 0 0 2px !important; line-height: 1.15; }
+  header p.desc{ margin: 2px 0 0 !important; }
+}
+
+@media (max-width:560px){
+  .import-wrap{
+    display: grid;
+    place-items: center;   /* centraliza o conteúdo */
+    text-align: center;
+  }
+  .btn-import{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    cursor: pointer;
+  }
 }
