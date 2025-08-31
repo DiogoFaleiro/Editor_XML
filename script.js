@@ -158,31 +158,26 @@ function formatBRL4(n) {
 })();
 
 // Passo 2: Detectando quando o PWA pode ser instalado
+// Passo 2: Detectando quando o PWA pode ser instalado (pop-up central)
 let deferredPrompt;
 const installModal = document.getElementById('installModal');
-const installBtn = document.getElementById('installBtn');
-const dismissBtn = document.getElementById('dismissBtn');
+const installBtn   = document.getElementById('installBtn');
+const dismissBtn   = document.getElementById('dismissBtn');
 
-// Detecta se o navegador suporta PWA
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installModal.style.display = 'block';
-  document.body.classList.add('has-install-modal'); // <-- adiciona classe no body
+  installModal.classList.add('show');  // abre modal central
 });
 
-// Quando o usuário clicar no botão de instalação
 installBtn.addEventListener('click', () => {
-  installModal.style.display = 'none';
-  document.body.classList.remove('has-install-modal'); // <-- remove classe
+  installModal.classList.remove('show'); // fecha modal
   deferredPrompt.prompt();
   deferredPrompt.userChoice.finally(() => deferredPrompt = null);
 });
 
-// Quando o usuário clicar em "Não, obrigado"
 dismissBtn.addEventListener('click', () => {
-  installModal.style.display = 'none';
-  document.body.classList.remove('has-install-modal'); // <-- remove classe
+  installModal.classList.remove('show'); // fecha modal
 });
 
 /* ========== Sticky thead offset ========== */
