@@ -46,6 +46,11 @@ header p.desc{ margin:6px 0 0; color:#c9d1d9; font-size:clamp(13px,2.2vw,15px); 
 @media (max-width:560px){
   header{ flex-direction:column; align-items:center; text-align:center; gap:8px; }
   .brand{ order:-1; } .brand img{ height:72px; }
+  td.ucom input,
+  td.costCol input{
+   max-width: 70px;
+   font-size: 12px;
+}
 }
 
 /* ================== Layout base ================== */
@@ -420,4 +425,13 @@ main{ flex: 1 0 auto; }  /* empurra o footer pro fim da página */
 @keyframes pop{
   0% { opacity:0; transform: scale(.94); }
   100%{ opacity:1; transform: scale(1); }
+}
+
+/* Ajusta inputs da tabela para não estourarem largura */
+td.ucom input,
+td.costCol input{
+  max-width: 100px;   /* largura fixa aceitável */
+  text-align: center; /* centraliza valores */
+  padding: 4px 6px;   /* mais compacto */
+  font-size: 13px;    /* levemente menor */
 }
