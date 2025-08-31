@@ -435,3 +435,10 @@ td.costCol input{
   padding: 4px 6px;   /* mais compacto */
   font-size: 13px;    /* levemente menor */
 }
+
+.smoke-canvas{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000; /* antes estava 9998 */
+}

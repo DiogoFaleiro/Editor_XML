@@ -586,16 +586,17 @@ function sweepClean(done){
   document.body.appendChild(broom);
 
   // partículas de fumaça
-  const N = 140, H0 = innerHeight*0.7;
-  const parts = Array.from({length:N}, () => ({
-    x: Math.random()*innerWidth,
-    y: H0 + Math.random()*80 - 40,
-    r: 8 + Math.random()*20,
-    vx: (Math.random()-.5)*0.6,
-    vy: - (0.6 + Math.random()*1.6),
-    a: .65 + Math.random()*.25,
-    g: 200 + Math.random()*30
-  }));
+ // partículas de fumaça
+const N = 120, H0 = innerHeight*0.7;
+const parts = Array.from({length:N}, () => ({
+  x: Math.random()*innerWidth,
+  y: H0 + Math.random()*80 - 40,
+  r: 15 + Math.random()*25,  // raio maior
+  vx: (Math.random()-.5)*1.0,
+  vy: - (0.8 + Math.random()*1.6),
+  a: .8 + Math.random()*.25, // mais opaco
+  g: 180 + Math.random()*40  // cinza mais escuro
+}));
 
   const t0 = performance.now(), DUR = 1300;
 
