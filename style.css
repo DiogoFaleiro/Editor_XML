@@ -540,3 +540,16 @@ header .brand img{
     cursor: pointer;
   }
 }
+@media (max-width:560px){
+  #dropzone {
+    display: flex;
+    flex-direction: column;  /* empilha */
+    align-items: center;     /* centraliza horizontal */
+    justify-content: center; /* centraliza vertical */
+    text-align: center;
+  }
+
+  #dropzone .btn-import {
+    margin-top: 10px; /* espaçamento do texto */
+  }
+}
