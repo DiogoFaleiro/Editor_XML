@@ -329,3 +329,62 @@ footer{
   outline: 3px solid rgba(0,119,200,.45);
   outline-offset: 2px;
 }
+
+/* === Confetti overlay === */
+.confetti-canvas{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+.confetti-toast{
+  position: fixed;
+  top: 14%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #003B73, #0077C8);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  z-index: 10000;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  animation: fadeUp 2.4s ease forwards;
+}
+@keyframes fadeUp{
+  0%   { opacity:0; transform:translate(-50%,20px); }
+  10%  { opacity:1; transform:translate(-50%,0); }
+  90%  { opacity:1; }
+  100% { opacity:0; transform:translate(-50%,-10px); }
+}
+
+/* === Layout para footer ficar colado no fim === */
+html, body { height: 100%; }
+body{ min-height: 100dvh; display:flex; flex-direction:column; }
+main{ flex: 1 0 auto; }
+
+/* === Footer faixa/gradiente e crédito maior === */
+footer{
+  margin-top: auto;                           /* empurra pro fim */
+  background: linear-gradient(90deg,#003B73,#0077C8);
+  color:#fff;
+  padding: 16px 20px;
+  font-size: clamp(14px, 1.8vw, 18px);        /* maior */
+  font-weight: 600;
+  text-align:center;
+  border-radius: 12px 12px 0 0;
+}
+/* quando o banner PWA estiver aberto, “gruda” o footer nele */
+.has-install-modal footer{ margin-bottom: 84px; } /* ≈ altura do banner */
+
+/* === Header mais escuro do lado da logo === */
+header{
+  background:
+    radial-gradient(180px 140px at 95% 50%, rgba(0,0,0,.40), rgba(0,0,0,0) 70%),
+    linear-gradient(135deg, #003B73 0%, #005FA6 45%, #0077C8 100%);
+  color:#fff;
+  border-bottom:none;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+/* dá contraste na marca */
+.brand img{ filter: drop-shadow(0 2px 8px rgba(0,0,0,.25)); }

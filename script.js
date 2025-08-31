@@ -165,37 +165,24 @@ const dismissBtn = document.getElementById('dismissBtn');
 
 // Detecta se o navegador suporta PWA
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Impede o comportamento padrão
   e.preventDefault();
-  // Guarda o evento para ser acionado posteriormente
   deferredPrompt = e;
-
-  // Exibe o modal com a pergunta para instalar o app
   installModal.style.display = 'block';
+  document.body.classList.add('has-install-modal'); // <-- adiciona classe no body
 });
 
 // Quando o usuário clicar no botão de instalação
 installBtn.addEventListener('click', () => {
-  // Esconde o modal
   installModal.style.display = 'none';
-  // Mostra o prompt de instalação
+  document.body.classList.remove('has-install-modal'); // <-- remove classe
   deferredPrompt.prompt();
-
-  // Espera o usuário aceitar ou recusar
-  deferredPrompt.userChoice.then((choiceResult) => {
-    if (choiceResult.outcome === 'accepted') {
-      console.log('Usuário aceitou a instalação');
-    } else {
-      console.log('Usuário rejeitou a instalação');
-    }
-    deferredPrompt = null;
-  });
+  deferredPrompt.userChoice.finally(() => deferredPrompt = null);
 });
 
 // Quando o usuário clicar em "Não, obrigado"
 dismissBtn.addEventListener('click', () => {
-  // Esconde o modal sem fazer nada
   installModal.style.display = 'none';
+  document.body.classList.remove('has-install-modal'); // <-- remove classe
 });
 
 /* ========== Sticky thead offset ========== */
@@ -494,27 +481,92 @@ function updateSum() {
   document.getElementById('somaCustos').innerHTML = formatBRL2(sum);  // Aplica a formatação com 2 casas
 }
 
+/* ========= Confetti Celebrate ========= */
+
+function confettiCelebrate(msg){
+  const cvs = document.createElement('canvas');
+  cvs.className = 'confetti-canvas';
+  document.body.appendChild(cvs);
+  const ctx = cvs.getContext('2d');
+
+  const dpr = window.devicePixelRatio || 1;
+  function resize(){
+    cvs.width = innerWidth * dpr;
+    cvs.height = innerHeight * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const colors = ['#0077C8','#00AEEF','#003B73','#06D6A0','#FFD166'];
+  const N = 150;
+  const parts = Array.from({length:N}, () => ({
+    x: Math.random()*innerWidth,
+    y: -10,
+    w: 6 + Math.random()*6,
+    h: 10 + Math.random()*14,
+    angle: Math.random()*Math.PI,
+    vx: (Math.random()-0.5)*6,
+    vy: 4 + Math.random()*4,
+    ay: 0.18,
+    color: colors[(Math.random()*colors.length)|0],
+    spin: (Math.random()-0.5)*0.25
+  }));
+
+  const start = performance.now();
+  const dur = 1700;
+
+  function draw(t){
+    const elapsed = (t || performance.now()) - start;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    for (const p of parts){
+      p.vy += p.ay; p.x += p.vx; p.y += p.vy; p.angle += p.spin;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    }
+    if (elapsed < dur) requestAnimationFrame(draw);
+    else cvs.remove();
+  }
+  requestAnimationFrame(draw);
+
+  if (msg){
+    const toast = document.createElement('div');
+    toast.className = 'confetti-toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(()=> toast.remove(), 2400);
+  }
+}
+
 /* =========================================================
    Exportar XML alterado (cópia sem assinatura)
    ========================================================= */
+
 function exportAlteredNFeXML(){
-  if(!state._doc){ alert('Abra um XML da NF-e primeiro.'); return; }
+  if (!state._doc) { 
+    alert('Abra um XML da NF-e primeiro.'); 
+    return; 
+  }
   const ok = confirm('Isto gera uma CÓPIA do XML da NF-e com alterações (custos/unid. e CNPJ do destinatário, se informado). NÃO é fiscalmente válido. Continuar?');
-  if(!ok) return;
+  if (!ok) return;
 
   const doc = state._doc.cloneNode(true);
 
   // Atualiza itens
-  const byNItem = new Map(state.itens.map(it=>[String(it.nItem||''),it]));
-  Array.from(doc.getElementsByTagName('det')).forEach(det=>{
+  const byNItem = new Map(state.itens.map(it => [String(it.nItem || ''), it]));
+  Array.from(doc.getElementsByTagName('det')).forEach(det => {
     const nItem = String(det.getAttribute('nItem') || '');
     const it = byNItem.get(nItem);
-    if(!it) return;
+    if (!it) return;
     const prod = det.getElementsByTagName('prod')[0];
-    if(!prod) return;
-    setOrCreate(prod,'uCom',  it.uCom || 'UN');
-    setOrCreate(prod,'vUnCom', formatXMLNumber(it.custoUnit, 2));
-    setOrCreate(prod,'vProd',  formatXMLNumber((it.qCom||0)*(it.custoUnit||0), 2));
+    if (!prod) return;
+    setOrCreate(prod, 'uCom',  it.uCom || 'UN');
+    setOrCreate(prod, 'vUnCom', formatXMLNumber(it.custoUnit, 2));
+    setOrCreate(prod, 'vProd',  formatXMLNumber((it.qCom || 0) * (it.custoUnit || 0), 2));
   });
 
   // Atualiza CNPJ do destinatário (se válido)
@@ -527,12 +579,16 @@ function exportAlteredNFeXML(){
     }
   }
 
-  // --- final da função: serializa, baixa e limpa a UI ---
+  // Serializa e baixa
   const xmlDecl = state._xmlText.startsWith('<?xml') ? '' : '<?xml version="1.0" encoding="UTF-8"?>\n';
   const xml = new XMLSerializer().serializeToString(doc);
-  downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml','application/xml;charset=utf-8');
+  downloadFile(xmlDecl + xml, fileNameBase() + '_ALTERADA_sem_assinatura.xml', 'application/xml;charset=utf-8');
 
-  setTimeout(limparTudo, 100); // limpa tudo após salvar
+  // 🎉 Parabéns com confete nas cores da marca
+  confettiCelebrate('✅ XML salvo com sucesso!');
+
+  // Limpa UI em seguida
+  setTimeout(limparTudo, 120);
 }
 
 /* =========================================================
