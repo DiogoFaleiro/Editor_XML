@@ -565,15 +565,15 @@ function limparComEfeito(){
 }
 
 function sweepClean(done){
-  // canvas de fumaça
+  // --- tenta canvas primeiro ---
   const cvs = document.createElement('canvas');
   cvs.className = 'smoke-canvas';
   document.body.appendChild(cvs);
-  const ctx = cvs.getContext('2d');
+  const ctx = cvs.getContext('2d', { alpha: true, willReadFrequently: false });
 
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   function resize(){
-    cvs.width = innerWidth * dpr;
+    cvs.width  = innerWidth * dpr;
     cvs.height = innerHeight * dpr;
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
@@ -585,18 +585,72 @@ function sweepClean(done){
   broom.textContent = '🧹';
   document.body.appendChild(broom);
 
-  // partículas de fumaça
- // partículas de fumaça
-const N = 120, H0 = innerHeight*0.7;
-const parts = Array.from({length:N}, () => ({
-  x: Math.random()*innerWidth,
-  y: H0 + Math.random()*80 - 40,
-  r: 15 + Math.random()*25,  // raio maior
-  vx: (Math.random()-.5)*1.0,
-  vy: - (0.8 + Math.random()*1.6),
-  a: .8 + Math.random()*.25, // mais opaco
-  g: 180 + Math.random()*40  // cinza mais escuro
-}));
+  const useDomFallback = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+
+  // ------ Fallback DOM (funciona em 100% dos Androids) ------
+  function spawnDomSmoke(){
+    const COUNT = 24;
+    for (let i=0;i<COUNT;i++){
+      const s = document.createElement('div');
+      s.className = 'smoke-puff';
+      const left = 6 + Math.random()*88;          // %
+      const size = 34 + Math.random()*34;         // px
+      const delay = (i*18 + Math.random()*80);    // ms
+      s.style.left = left + 'vw';
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
+      s.style.animationDelay = delay + 'ms';
+      document.body.appendChild(s);
+      setTimeout(()=> s.remove(), 1400 + delay);
+    }
+  }
+
+  // ------ Canvas (desktop/onde renderiza bem) ------
+  function spawnCanvasSmoke(){
+    const N = 140, H0 = innerHeight * 0.72;
+    const parts = Array.from({length:N}, () => ({
+      x: Math.random()*innerWidth,
+      y: H0 + Math.random()*80 - 40,
+      r: 14 + Math.random()*22,
+      vx: (Math.random()-.5)*0.9,
+      vy: - (0.9 + Math.random()*1.3),
+      a: .85 + Math.random()*.1,
+      g: 185 + Math.random()*30
+    }));
+    const t0 = performance.now(), DUR = 1300;
+    (function draw(t){
+      const k = Math.min(1, (t - t0) / DUR);
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      for (const p of parts){
+        p.x += p.vx*(1-k*0.3);
+        p.y += p.vy*(1-k*0.2);
+        const alpha = Math.max(0, p.a * (1 - k));
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${p.g},${p.g},${p.g},${alpha})`;
+        ctx.arc(p.x, p.y, p.r*(1+ k*0.25), 0, Math.PI*2);
+        ctx.fill();
+      }
+      if (k < 1) requestAnimationFrame(draw);
+      else cvs.remove();
+    })(t0);
+  }
+
+  // Dispara fumaça conforme o ambiente
+  if (useDomFallback) {
+    spawnDomSmoke();
+  } else {
+    try { spawnCanvasSmoke(); }
+    catch { spawnDomSmoke(); }
+  }
+
+  // remove tudo ao final
+  setTimeout(() => {
+    broom.remove();
+    cvs.remove();
+    if (typeof done === 'function') done();
+  }, 1400);
+}
+
 
   const t0 = performance.now(), DUR = 1300;
 
@@ -623,7 +677,6 @@ const parts = Array.from({length:N}, () => ({
     }
   }
   requestAnimationFrame(draw);
-}
 
 function exportAlteredNFeXML(){
   if (!state._doc) { 
