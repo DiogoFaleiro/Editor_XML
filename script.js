@@ -545,6 +545,70 @@ function confettiCelebrate(msg){
 /* =========================================================
    Exportar XML alterado (cópia sem assinatura)
    ========================================================= */
+/* ========= Sweep Clean (fumaça + vassoura) ========= */
+function limparComEfeito(){
+  sweepClean(() => { limparTudo(); });
+}
+
+function sweepClean(done){
+  // canvas de fumaça
+  const cvs = document.createElement('canvas');
+  cvs.className = 'smoke-canvas';
+  document.body.appendChild(cvs);
+  const ctx = cvs.getContext('2d');
+
+  const dpr = window.devicePixelRatio || 1;
+  function resize(){
+    cvs.width = innerWidth * dpr;
+    cvs.height = innerHeight * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+
+  // vassoura
+  const broom = document.createElement('div');
+  broom.className = 'broom';
+  broom.textContent = '🧹';
+  document.body.appendChild(broom);
+
+  // partículas de fumaça
+  const N = 140, H0 = innerHeight*0.7;
+  const parts = Array.from({length:N}, () => ({
+    x: Math.random()*innerWidth,
+    y: H0 + Math.random()*80 - 40,
+    r: 8 + Math.random()*20,
+    vx: (Math.random()-.5)*0.6,
+    vy: - (0.6 + Math.random()*1.6),
+    a: .65 + Math.random()*.25,
+    g: 200 + Math.random()*30
+  }));
+
+  const t0 = performance.now(), DUR = 1300;
+
+  function draw(t){
+    const k = (t - t0) / DUR;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    for (const p of parts){
+      // leve drift
+      p.x += p.vx;
+      p.y += p.vy * (1 - k*0.3);
+      p.vx *= 0.99;
+      p.vy *= 0.99;
+      const alpha = Math.max(0, p.a * (1 - k));
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${p.g},${p.g},${p.g},${alpha})`;
+      ctx.arc(p.x, p.y, p.r*(1+ k*0.2), 0, Math.PI*2);
+      ctx.fill();
+    }
+    if (k < 1) requestAnimationFrame(draw);
+    else {
+      cvs.remove();
+      broom.remove();
+      if (typeof done === 'function') done();
+    }
+  }
+  requestAnimationFrame(draw);
+}
 
 function exportAlteredNFeXML(){
   if (!state._doc) { 

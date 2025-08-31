@@ -388,3 +388,20 @@ header{
 }
 /* dá contraste na marca */
 .brand img{ filter: drop-shadow(0 2px 8px rgba(0,0,0,.25)); }
+
+/* === Sweep Clean (fumaça + vassoura) === */
+.smoke-canvas{
+  position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+}
+.broom{
+  position: fixed; left: -120px; bottom: 18vh;
+  font-size: 64px; line-height: 1; z-index: 9999;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.25));
+  transform: rotate(-18deg);
+  animation: sweepMove 1.4s ease-in-out forwards;
+}
+@keyframes sweepMove{
+  0%   { transform: translateX(0) rotate(-18deg); }
+  60%  { transform: translateX(60vw) rotate(-2deg); }
+  100% { transform: translateX(110vw) rotate(10deg); }
+}
