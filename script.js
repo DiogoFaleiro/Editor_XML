@@ -157,7 +157,7 @@ function formatBRL4(n) {
   }
 })();
 
-// Passo 2: Detectando quando o PWA pode ser instalado
+
 // Passo 2: Detectando quando o PWA pode ser instalado (pop-up central)
 let deferredPrompt;
 const installModal = document.getElementById('installModal');
@@ -173,11 +173,19 @@ window.addEventListener('beforeinstallprompt', (e) => {
 installBtn.addEventListener('click', () => {
   installModal.classList.remove('show'); // fecha modal
   deferredPrompt.prompt();
-  deferredPrompt.userChoice.finally(() => deferredPrompt = null);
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      // 🎉 dispara confete ao aceitar instalação
+      confettiCelebrate('🎉 App adicionado com sucesso!');
+    }
+    deferredPrompt = null;
+  });
 });
 
 dismissBtn.addEventListener('click', () => {
   installModal.classList.remove('show'); // fecha modal
+  // 🧹 dispara vassourinha ao recusar instalação
+  sweepClean();
 });
 
 /* ========== Sticky thead offset ========== */
@@ -194,6 +202,17 @@ let state = {
   itens:[], _doc:null, _xmlText:'',
   destDoc:{ tipo:null, valor:null } // 'CNPJ' | 'CPF' | null
 };
+
+// Modal central (extra interações)
+// fecha ao clicar fora do conteúdo
+installModal.addEventListener('click', (e) => {
+  if (e.target === installModal) installModal.classList.remove('show');
+});
+
+// fecha com ESC
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') installModal.classList.remove('show');
+});
 
 /* =========================================================
    Drag & drop / arquivo

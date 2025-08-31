@@ -410,3 +410,12 @@ main{ flex: 1 0 auto; }  /* empurra o footer pro fim da página */
 .install-btn{ background: linear-gradient(135deg,#0077C8,#005f99); color:#fff; }
 .dismiss-btn{ background:#333; color:#fff; }
 .install-btn:hover{ transform: translateY(-1px); }
+
+.install-modal.show .install-modal-content{
+  animation: pop .24s ease;
+  transform-origin: center;
+}
+@keyframes pop{
+  0% { opacity:0; transform: scale(.94); }
+  100%{ opacity:1; transform: scale(1); }
+}
