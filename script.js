@@ -284,7 +284,10 @@ function toNumber(str){ if (str == null) return 0; const s=String(str).replace(/
 function formatBRL(n){ try{ return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:10}).format(n||0); }catch{ return (n||0).toFixed(2); } }
 function formatQty(n){ try{ return new Intl.NumberFormat('pt-BR',{maximumFractionDigits:10}).format(n||0); }catch{ return String(n||0); } }
 function formatDateBR(d){ if(!d) return ''; const only=d.slice(0,10); const [y,m,da]=only.split('-'); return (y&&m&&da)?`${da}/${m}/${y}`:d; }
-function numToInput(n){ return (n ?? 0).toString().replace('.', ','); }
+function numToInput(n, dec=2){
+  const v = Number(n ?? 0);
+  return v.toFixed(dec).replace('.', ',');
+}
 function soDigitos(s){ return (s || '').replace(/\D+/g, ''); }
 function mascaraCNPJ(s){
   const d = soDigitos(s).slice(0,14);
@@ -418,18 +421,25 @@ function renderTable() {
     <td>${formatQty(it.qCom)}</td>                             <!-- Qtd -->
     <td>${formatBRL2(it.vUnComNF)}</td>                        <!-- Vlr Unit. NF-e -->
     <td>${formatBRL2(it.vProdNF)}</td>                         <!-- Vlr Total NF-e -->
-    <td class="costCol">                                       <!-- Preço de Custo (unit.) -->
+    <td class="costCol">
       <input class="cost" data-idx="${idx}" type="text" inputmode="decimal"
-             value="${numToInput(it.custoUnit)}">
+             value="${numToInput(it.custoUnit, 2)}">
     </td>
-    <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td> <!-- Custo Total -->
+    <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>
   `;
   tbody.appendChild(tr);
 });
 
   // Atualiza os inputs (desktop e mobile)
-  tbody.querySelectorAll('input.cost').forEach(inp => inp.addEventListener('input', onCostChange));
-  tbody.querySelectorAll('input.ucom-input').forEach(inp => inp.addEventListener('input', onUComChange));
+tbody.querySelectorAll('input.cost').forEach(inp => {
+  inp.addEventListener('input', onCostChange);
+  inp.addEventListener('blur', (e) => {
+    e.target.value = numToInput(toNumber(e.target.value), 2); // força 2 casas ao sair
+  });
+});
+tbody.querySelectorAll('input.ucom-input').forEach(inp => {
+  inp.addEventListener('input', onUComChange);
+});
 
   // Toggle do editor mobile (delegado)
   tbody.addEventListener('click', (e) => {
@@ -449,6 +459,8 @@ function onCostChange(e){
   const n = toNumber(e.target.value);
   state.itens[idx].custoUnit = n;
   const tr = e.target.closest('tr');
+  const cell = tr.querySelector('.cTotal');
+if (cell) cell.textContent = formatBRL2((state.itens[idx].qCom || 0) * n);
 
   if (tr){
     if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) tr.classList.add('changed'); else tr.classList.remove('changed');
