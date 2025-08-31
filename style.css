@@ -462,3 +462,34 @@ td.costCol input{
   25%  { opacity:.9; }
   100% { transform: translateY(-120px) scale(1.6); opacity:0; }
 }
+/* Mantém a altura visual do header */
+header{
+  position: relative;
+  min-height: 120px;          /* altura do header que você quer manter */
+  padding-right: 240px;       /* reserva espaço pro bloco da logo */
+}
+
+/* Logo fora do fluxo (não aumenta o header) */
+header .brand{
+  position: absolute;
+  right: 24px;
+  top: 12px;
+}
+header .brand img{
+  height: 150px;              /* tamanho grande da logo */
+  width: auto;
+  object-fit: contain;
+}
+
+/* Responsivo */
+@media (max-width: 560px){
+  header{ 
+    min-height: 96px; 
+    padding-right: 140px;     /* reserva menos espaço no mobile */
+  }
+  header .brand{
+    right: 12px;
+    top: 8px;
+  }
+  header .brand img{ height: 96px; }
+}
