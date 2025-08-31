@@ -406,19 +406,26 @@ function renderTable() {
 
   // Percorre cada item da lista de itens e renderiza uma linha na tabela
   state.itens.forEach((it, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${it.nItem || (idx + 1)}</td>  <!-- Número do item -->
-      <td>${it.cProd}</td>  <!-- Código do produto -->
-      <td>${it.xProd}</td>  <!-- Descrição do produto -->
-      <td>${formatBRL2(it.vUnComNF)}</td>  <!-- Vlr Unit. NF-e com 2 casas -->
-      <td>${formatBRL2(it.vProdNF)}</td>  <!-- Vlr Total NF-e com 2 casas -->
-      <td>${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>  <!-- Custo Total com 2 casas -->
-      <td>${formatQty(it.qCom)}</td>  <!-- Quantidade (Inteiro) -->
-      <td>${it.uCom}</td>  <!-- Unidade -->
-    `;
-    tbody.appendChild(tr);
-  });
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${it.nItem || (idx + 1)}</td>                         <!-- # -->
+    <td>${it.cProd ?? ''}</td>                                 <!-- Código -->
+    <td>${it.xProd ?? ''}</td>                                 <!-- Descrição -->
+    <td class="ucom">                                          <!-- Unid. (editável) -->
+      <input class="ucom-input" data-idx="${idx}" type="text"
+             maxlength="6" value="${(it.uCom || '').toUpperCase()}">
+    </td>
+    <td>${formatQty(it.qCom)}</td>                             <!-- Qtd -->
+    <td>${formatBRL2(it.vUnComNF)}</td>                        <!-- Vlr Unit. NF-e -->
+    <td>${formatBRL2(it.vProdNF)}</td>                         <!-- Vlr Total NF-e -->
+    <td class="costCol">                                       <!-- Preço de Custo (unit.) -->
+      <input class="cost" data-idx="${idx}" type="text" inputmode="decimal"
+             value="${numToInput(it.custoUnit)}">
+    </td>
+    <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td> <!-- Custo Total -->
+  `;
+  tbody.appendChild(tr);
+});
 
   // Atualiza os inputs (desktop e mobile)
   tbody.querySelectorAll('input.cost').forEach(inp => inp.addEventListener('input', onCostChange));
