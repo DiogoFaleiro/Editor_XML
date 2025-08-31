@@ -42,10 +42,10 @@ header .title-wrap{ flex:1; }
 header h1{ margin:0; font-size:clamp(20px,3vw,28px); }
 header p.desc{ margin:6px 0 0; color:#c9d1d9; font-size:clamp(13px,2.2vw,15px); }
 .brand img{ height:96px; }
-@media (min-width:1200px){ .brand img{ height:150px; } }
+@media (min-width:1200px){ .brand img{ height:290px; } }
 @media (max-width:560px){
   header{ flex-direction:column; align-items:center; text-align:center; gap:8px; }
-  .brand{ order:-1; } .brand img{ height:96px; }
+  .brand{ order:-1; } .brand img{ height:210px; }
   td.ucom input,
   td.costCol input{
    max-width: 70px;
