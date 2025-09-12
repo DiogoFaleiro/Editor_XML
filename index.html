@@ -98,18 +98,37 @@
       <div class="spacer"></div>
       <div class="sum" id="somaCustos"></div>
     </div>
+    <!-- Ações em massa -->
+<div id="bulkBar" class="row hidden" style="margin-top:8px; gap:8px;">
+  <select id="bulkScope">
+    <option value="selected">Itens selecionados</option>
+    <option value="all">Todos os itens</option>
+  </select>
+
+  <input id="bulkNewUnit" type="text" maxlength="6" placeholder="Nova unidade (ex.: UN, PC, CX)">
+  <button id="btnBulkApply" class="secondary">Aplicar unidade</button>
+</div>
 
     <!-- Tabela -->
     <div id="tableWrap" class="hidden">
       <table id="tbl">
-        <thead>
-          <tr>
-            <th>#</th><th>Código</th><th>Descrição</th>
-            <th class="ucom">Unid.</th><th>Qtd</th>
-            <th>Vlr Unit. NF-e</th><th>Vlr Total NF-e</th>
-            <th class="costCol">Preço de Custo (unit.)</th><th>Custo Total</th>
-          </tr>
-        </thead>
+<thead>
+    <tr>
+    <!-- Checkbox mestre para selecionar/deselecionar todas as linhas -->
+    <th style="width:36px; text-align:center;">
+      <input type="checkbox" id="selectAllRows" aria-label="Selecionar todos">
+    </th>
+    <th>Código</th>
+    <th>Descrição</th>
+    <th class="ucom">Unid.</th>
+    <th>Qtd</th>
+    <th>Vlr Unit. NF-e</th>
+    <th>Vlr Total NF-e</th>
+    <th class="costCol">Preço de Custo (unit.)</th>
+    <th>Custo Total</th>
+  </tr>
+</thead>
+
         <tbody id="tbody"></tbody>
       </table>
       <div class="foot">

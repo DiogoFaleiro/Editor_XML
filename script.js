@@ -1,14 +1,20 @@
 /*
    Editor de XML NF-e — DFSystem  |  JS estável (revisado)
     */
-/* 
-   Funções auxiliares para formatação de valores monetários
-    */
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Seu código que manipula o DOM vai aqui
-  renderTable();  // Chama a função renderTable() após o DOM ser carregado
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnBulkApply');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const scope = document.getElementById('bulkScope')?.value || 'selected';
+      const unit  = document.getElementById('bulkNewUnit')?.value || '';
+      bulkApplyUnit(unit, scope);
+    });
+  }
 });
+   
+// Mantém as linhas selecionadas mesmo após re-render
+let selectedRows = new Set();
 
 function parseXML(xml) {
   try {
@@ -72,6 +78,8 @@ function parseXML(xml) {
 
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
+
+    document.getElementById('bulkBar')?.classList.remove('hidden');
 
     console.log('Itens do estado após extração:', state.itens); // Log para depuração
 
@@ -300,6 +308,32 @@ function mascaraCNPJ(s){
 }
 function cnpjValido14(s){ return soDigitos(s).length === 14; }
 
+// Retorna os índices conforme o escopo escolhido
+function getBulkIndices(scope){
+  if (scope === 'all') return state.itens.map((_, i) => i);
+  // default: selecionados
+  return Array.from(selectedRows);
+}
+
+// Aplica nova unidade nos itens do escopo
+function bulkApplyUnit(newUnit, scope){
+  const unit = (newUnit || '').trim().toUpperCase();
+  if (!unit) { alert('Informe a nova unidade.'); return; }
+
+  const idxs = getBulkIndices(scope);
+  if (!idxs.length) { alert('Nenhum item no escopo.'); return; }
+
+  idxs.forEach(i => {
+    const it = state.itens[i];
+    if (!it) return;
+    it.uCom = unit;                 // altera a unidade comercial
+  });
+
+  renderTable();                    // re-render
+  if (typeof updateSum === 'function') updateSum();
+}
+
+
 /* =========================================================
    UI: metas + CNPJ (com CHAVE editável + copiar)
    ========================================================= */
@@ -388,72 +422,127 @@ function renderMeta(){
    UI: tabela (com editor mobile expandível)
    ========================================================= */
 
+// === Util: sincroniza o mestre com o estado atual ===
+function syncMasterCheckbox() {
+  const tbody  = document.getElementById('tbody');
+  const master = document.getElementById('selectAllRows');
+  if (!tbody || !master) return;
+
+  const all     = tbody.querySelectorAll('.row-select');
+  const checked = tbody.querySelectorAll('.row-select:checked');
+
+  if (all.length === 0) {
+    master.checked = false;
+    master.indeterminate = false;
+    return;
+  }
+  master.checked = checked.length === all.length;
+  master.indeterminate = checked.length > 0 && checked.length < all.length;
+}
+
+// === Render principal da tabela ===
 function renderTable() {
   const tbody = document.getElementById('tbody');
+  if (!tbody) { console.error('tbody não encontrado'); return; }
+  if (!state.itens || state.itens.length === 0) { tbody.innerHTML = ''; updateSum?.(); syncMasterCheckbox(); return; }
 
-  // Verifica se o tbody existe no DOM
-  if (!tbody) {
-    console.error('Elemento <tbody> não encontrado!');
-    return;
-  }
+  tbody.innerHTML = '';
 
-  // Verifica se o estado contém itens
-  if (!state.itens || state.itens.length === 0) {
-    console.error('Nenhum item encontrado em state.itens');
-    return;
-  }
-
-  tbody.innerHTML = '';  // Limpa a tabela antes de preenchê-la com novos dados
-
-  // Verifique o conteúdo de state.itens para debug
-  console.log('Itens do XML:', state.itens);
-
-  // Percorre cada item da lista de itens e renderiza uma linha na tabela
+  // Linhas
   state.itens.forEach((it, idx) => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${it.nItem || (idx + 1)}</td>                         <!-- # -->
-    <td>${it.cProd ?? ''}</td>                                 <!-- Código -->
-    <td>${it.xProd ?? ''}</td>                                 <!-- Descrição -->
-    <td class="ucom">                                          <!-- Unid. (editável) -->
-      <input class="ucom-input" data-idx="${idx}" type="text"
-             maxlength="6" value="${(it.uCom || '').toUpperCase()}">
-    </td>
-    <td>${formatQty(it.qCom)}</td>                             <!-- Qtd -->
-    <td>${formatBRL2(it.vUnComNF)}</td>                        <!-- Vlr Unit. NF-e -->
-    <td>${formatBRL2(it.vProdNF)}</td>                         <!-- Vlr Total NF-e -->
-    <td class="costCol">
-      <input class="cost" data-idx="${idx}" type="text" inputmode="decimal"
-             value="${numToInput(it.custoUnit, 2)}">
-    </td>
-    <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>
-  `;
-  tbody.appendChild(tr);
-});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <!-- Seleção -->
+      <td style="text-align:center;">
+        <input class="row-select" type="checkbox" data-idx="${idx}"
+               ${selectedRows.has(idx) ? 'checked' : ''}
+               aria-label="Selecionar item ${idx + 1}">
+      </td>
 
-  // Atualiza os inputs (desktop e mobile)
-tbody.querySelectorAll('input.cost').forEach(inp => {
-  inp.addEventListener('input', onCostChange);
-  inp.addEventListener('blur', (e) => {
-    e.target.value = numToInput(toNumber(e.target.value), 2); // força 2 casas ao sair
-  });
-});
-tbody.querySelectorAll('input.ucom-input').forEach(inp => {
-  inp.addEventListener('input', onUComChange);
-});
+      <!-- Código / Descrição -->
+      <td>${it.cProd ?? ''}</td>
+      <td>${it.xProd ?? ''}</td>
 
-  // Toggle do editor mobile (delegado)
-  tbody.addEventListener('click', (e) => {
-    const btn = e.target.closest('.m-edit-toggle');
-    if (!btn) return;
-    const cell = btn.closest('td');
-    const open = !cell.classList.contains('m-open');
-    cell.classList.toggle('m-open', open);
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      <!-- Unid. (editável) -->
+      <td class="ucom">
+        <input class="ucom-input" data-idx="${idx}" type="text" maxlength="6"
+               value="${(it.uCom || '').toUpperCase()}">
+      </td>
+
+      <!-- Quantidade e valores da NF-e -->
+      <td>${formatQty(it.qCom)}</td>
+      <td>${formatBRL2(it.vUnComNF)}</td>
+      <td>${formatBRL2(it.vProdNF)}</td>
+
+      <!-- Custo unitário (editável) e custo total calculado -->
+      <td class="costCol">
+        <input class="cost" data-idx="${idx}" type="text" inputmode="decimal"
+               value="${numToInput(it.custoUnit, 2)}">
+      </td>
+      <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>
+    `;
+    tbody.appendChild(tr);
   });
 
-  updateSum();  // Atualiza a soma total
+  // Listeners dos inputs (custos + unidade)
+  tbody.querySelectorAll('input.cost').forEach(inp => {
+    inp.addEventListener('input', onCostChange);
+    inp.addEventListener('blur', (e) => {
+      e.target.value = numToInput(toNumber(e.target.value), 2); // força 2 casas
+    });
+  });
+  tbody.querySelectorAll('input.ucom-input').forEach(inp => {
+    inp.addEventListener('input', onUComChange);
+  });
+
+  // Delegado: seleção por linha (sem duplicar)
+  if (!tbody.__rowSelectWired) {
+    tbody.addEventListener('change', (e) => {
+      const el = e.target;
+      if (!el.classList.contains('row-select')) return;
+      const idx = Number(el.dataset.idx);
+      if (Number.isNaN(idx)) return;
+      if (el.checked) selectedRows.add(idx); else selectedRows.delete(idx);
+      syncMasterCheckbox();
+    });
+    tbody.__rowSelectWired = true;
+  }
+
+  // Delegado: toggle editor mobile (sem duplicar)
+  if (!tbody.__mobileEditWired) {
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('.m-edit-toggle');
+      if (!btn) return;
+      const cell = btn.closest('td');
+      const open = !cell.classList.contains('m-open');
+      cell.classList.toggle('m-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    tbody.__mobileEditWired = true;
+  }
+
+  // Mestre: marcar/desmarcar todos (sem duplicar)
+  const master = document.getElementById('selectAllRows');
+  if (master && !master.__wired) {
+    master.addEventListener('change', () => {
+      const rows = tbody.querySelectorAll('.row-select');
+      rows.forEach(cb => {
+        cb.checked = master.checked;
+        const i = Number(cb.dataset.idx);
+        if (Number.isNaN(i)) return;
+        if (master.checked) selectedRows.add(i);
+        else selectedRows.delete(i);
+      });
+      master.indeterminate = false;
+    });
+    master.__wired = true;
+  }
+
+  // Totais e estado visual do mestre
+  updateSum?.();
+  syncMasterCheckbox();
 }
+
 
 function onCostChange(e){
   const idx = Number(e.target.dataset.idx);
