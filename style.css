@@ -553,3 +553,9 @@ header .brand img{
     margin-top: 10px; /* espaçamento do texto */
   }
 }
+/* Estado desabilitado do botão Importar XML */
+.btn-import.is-disabled {
+  opacity: .55;
+  pointer-events: none;   /* bloqueia clique */
+  filter: grayscale(15%);
+}

@@ -89,6 +89,17 @@ function parseXML(xml) {
     console.error('[parseXML] erro:', err);
     alert('Erro ao interpretar XML: ' + (err?.message || err));
   }
+  // >>> INSERIR AO FINAL DO SUCESSO DO CARREGAMENTO DO XML
+renderTable();
+if (typeof updateSum === 'function') updateSum();
+
+// mostra UI de trabalho e trava o botão Importar
+document.getElementById('toolbar')?.classList.remove('hidden');
+document.getElementById('tableWrap')?.classList.remove('hidden');
+document.getElementById('bulkBar')?.classList.remove('hidden');
+
+disableImport(true); // 🔒 trava Importar XML até salvar/limpar
+
 }
 
 // Para valores com 2 casas decimais (moeda)
@@ -584,6 +595,16 @@ function updateSum() {
   document.getElementById('somaCustos').innerHTML = formatBRL2(sum);  // Aplica a formatação com 2 casas
 }
 
+// Ativa ou desativa o botão Importar XML
+function disableImport(disable){
+  const btn = document.getElementById('btnImportXML');
+  const file = document.getElementById('file'); // input de arquivo escondido
+  if (!btn || !file) return;
+
+  btn.classList.toggle('is-disabled', !!disable);
+  file.disabled = !!disable;
+}
+
 /* ========= Confetti Celebrate ========= */
 
 function confettiCelebrate(msg){
@@ -810,6 +831,9 @@ function exportAlteredNFeXML(){
 
   // Limpa UI em seguida
   setTimeout(limparTudo, 120);
+  // >>> INSERIR NO FINAL DE exportAlteredNFeXML(), APÓS GERAR E "CLICKAR" NO LINK
+disableImport(false); // 🔓 libera Importar XML novamente
+
 }
 
 /* =========================================================
@@ -852,4 +876,12 @@ function limparTudo(){
 
   const file = document.getElementById('file');
   if (file){ file.value=''; }
+  // >>> INSERIR NO FINAL DE limparTudo()
+selectedRows?.clear?.();
+disableImport(false); // 🔓 libera Importar XML
+// (opcional) esconder a barra e a tabela até novo XML
+document.getElementById('bulkBar')?.classList.add('hidden');
+// document.getElementById('toolbar')?.classList.add('hidden');
+// document.getElementById('tableWrap')?.classList.add('hidden');
+
 }

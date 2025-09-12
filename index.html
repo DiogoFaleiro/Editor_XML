@@ -62,16 +62,18 @@
         <b>Abra um XML da NF-e</b><br>
         <span class="help">Clique aqui ou arraste o arquivo .xml. Suporta &lt;nfeProc&gt; e &lt;NFe&gt; (v4.00).</span>
       </div>
+
       <!-- Botão Importar XML -->
       <div class="import-wrap">
-  <span class="btn-import">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-            stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    Importar XML
-  </span>
-</div>
+        <span id="btnImportXML" class="btn-import">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                  stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Importar XML
+        </span>
+      </div>
+    </div>
 
       <!-- input com fallback de leitura -->
       <input id="file" type="file" accept=".xml"
