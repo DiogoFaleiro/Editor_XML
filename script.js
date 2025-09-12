@@ -2,16 +2,46 @@
    Editor de XML NF-e — DFSystem  |  JS estável (revisado)
     */
 
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('btnBulkApply');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      const scope = document.getElementById('bulkScope')?.value || 'selected';
-      const unit  = document.getElementById('bulkNewUnit')?.value || '';
-      bulkApplyUnit(unit, scope);
-    });
+// Botão "Voltar ao topo" — compatível com qualquer navegador/contêiner
+(function setupBackToTop(){
+  const fabTop = document.getElementById('fabTop');
+  if (!fabTop) return;
+
+  function smoothScrollToTop(duration = 500){
+    // Pega todos os candidatos que podem estar rolando
+    const candidates = [
+      document.scrollingElement || document.documentElement,
+      document.documentElement,
+      document.body,
+      document.querySelector('main')
+    ].filter(el => el && el.scrollHeight > el.clientHeight);
+
+    // Se nada encontrado, tenta o window.scrollTo como fallback
+    if (candidates.length === 0){
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Anima manualmente o scrollTop de todos os candidatos
+    const starts = candidates.map(el => el.scrollTop || 0);
+    const t0 = performance.now();
+
+    function step(t){
+      const k = Math.min(1, (t - t0) / duration);
+      const ease = 1 - Math.pow(1 - k, 3); // easing cúbico
+      candidates.forEach((el, i) => {
+        el.scrollTop = starts[i] * (1 - ease);
+      });
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
-});
+
+  fabTop.addEventListener('click', (e) => {
+    e.preventDefault();
+    smoothScrollToTop(550);
+  });
+})();
    
 // Mantém as linhas selecionadas mesmo após re-render
 let selectedRows = new Set();
@@ -97,8 +127,9 @@ if (typeof updateSum === 'function') updateSum();
 document.getElementById('toolbar')?.classList.remove('hidden');
 document.getElementById('tableWrap')?.classList.remove('hidden');
 document.getElementById('bulkBar')?.classList.remove('hidden');
+disableImport(true);
 
-disableImport(true); // 🔒 trava Importar XML até salvar/limpar
+document.getElementById('fabTop')?.classList.remove('hidden');
 
 }
 
@@ -876,12 +907,13 @@ function limparTudo(){
 
   const file = document.getElementById('file');
   if (file){ file.value=''; }
-  // >>> INSERIR NO FINAL DE limparTudo()
+  
 selectedRows?.clear?.();
 disableImport(false); // 🔓 libera Importar XML
 // (opcional) esconder a barra e a tabela até novo XML
 document.getElementById('bulkBar')?.classList.add('hidden');
 // document.getElementById('toolbar')?.classList.add('hidden');
 // document.getElementById('tableWrap')?.classList.add('hidden');
+document.getElementById('fabTop')?.classList.add('hidden');
 
 }

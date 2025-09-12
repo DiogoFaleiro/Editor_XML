@@ -559,3 +559,42 @@ header .brand img{
   pointer-events: none;   /* bloqueia clique */
   filter: grayscale(15%);
 }
+/* Barra de ações em massa que acompanha o scroll */
+.sticky-bar {
+  position: sticky;
+  top: 12px;                 /* distância do topo, ajusta conforme o header */
+  z-index: 6;                /* fica acima da tabela */
+  background: var(--card);   /* fundo sólido */
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 8px 12px;
+}
+
+/* Botão flutuante: voltar ao topo (canto inferior esquerdo) */
+.fab-top {
+  position: fixed !important;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #1e66ff;     /* azul */
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  cursor: pointer;
+  width: auto;
+}
+.fab-top:hover { transform: translateY(-2px); }
+.fab-top.hidden { display: none !important; }
+
+/* (Opcional) no mobile, ocupar menos espaço */
+@media (max-width: 640px) {
+  .fab { padding: 10px 12px; gap: 6px; }
+}
+html { scroll-behavior: smooth; }
