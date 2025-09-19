@@ -1,5 +1,5 @@
 
-# Editor de Custo por Item — XML NF-e | DFSystem
+# Editor de Custo por Item — XML NF-e
 
 ## Objetivo
 Este projeto tem como objetivo fornecer uma ferramenta para editar o **custo por item** e **unidade de medida** de produtos contidos em um arquivo **XML de NF-e** (Nota Fiscal Eletrônica). O sistema permite carregar um arquivo XML, editar os valores de custo e unidade de medida dos itens, e salvar o XML alterado para **uso interno**, sem que o arquivo alterado seja um documento fiscal válido.
