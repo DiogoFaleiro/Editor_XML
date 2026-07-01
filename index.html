@@ -66,8 +66,7 @@
 <main>
   <div class="panel">
     <div id="dropzone" class="row"
-         onclick="document.getElementById('file').click()"
-         ondragover="evtDragOver(event)" ondragleave="evtDragLeave(event)" ondrop="evtDrop(event)">
+         onclick="document.getElementById('file').click()">
       <div class="grow">
         <b>Abra um XML da NF-e</b><br>
         <span class="help">Clique aqui ou arraste o arquivo .xml. Suporta &lt;nfeProc&gt; e &lt;NFe&gt; (v4.00).</span>
@@ -86,8 +85,7 @@
     </div>
 
       <!-- input com fallback de leitura -->
-      <input id="file" type="file" accept=".xml"
-             onchange="if (this.files && this.files[0]) loadXMLFile(this.files[0])">
+      <input id="file" type="file" accept=".xml">
     </div>
 
     <!-- Indicador de carregamento -->
@@ -185,9 +183,6 @@
           });
       });
     }
-
-    // Função renderTable() chamada após o carregamento do DOM
-    renderTable();
   });
 </script>
 

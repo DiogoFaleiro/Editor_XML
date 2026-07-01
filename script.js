@@ -93,7 +93,6 @@ function parseXML(xml) {
 
     // Extração dos itens do XML
     const dets = Array.from(doc.getElementsByTagName('det'));
-    console.log('Itens extraídos do XML:', dets);  // Log para depuração
 
     state.itens = dets.map(det => {
       const nItem = det.getAttribute('nItem') || '';  // Garantir que nItem seja obtido
@@ -109,28 +108,20 @@ function parseXML(xml) {
       return { nItem, cProd, xProd, uCom, qCom, vUnComNF, vProdNF, custoUnit };
     });
 
-    document.getElementById('bulkBar')?.classList.remove('hidden');
-
-    console.log('Itens do estado após extração:', state.itens); // Log para depuração
-
     renderMeta();  // Atualiza os metadados
     renderTable(); // Renderiza a tabela com os itens
+    updateSum();
+
+    // mostra UI de trabalho e trava o botão Importar
+    document.getElementById('toolbar')?.classList.remove('hidden');
+    document.getElementById('tableWrap')?.classList.remove('hidden');
+    document.getElementById('bulkBar')?.classList.remove('hidden');
+    document.getElementById('fabTop')?.classList.remove('hidden');
+    disableImport(true);
   } catch (err) {
     console.error('[parseXML] erro:', err);
     alert('Erro ao interpretar XML: ' + (err?.message || err));
   }
-  // >>> INSERIR AO FINAL DO SUCESSO DO CARREGAMENTO DO XML
-renderTable();
-if (typeof updateSum === 'function') updateSum();
-
-// mostra UI de trabalho e trava o botão Importar
-document.getElementById('toolbar')?.classList.remove('hidden');
-document.getElementById('tableWrap')?.classList.remove('hidden');
-document.getElementById('bulkBar')?.classList.remove('hidden');
-disableImport(true);
-
-document.getElementById('fabTop')?.classList.remove('hidden');
-
 }
 
 // Para valores com 2 casas decimais (moeda)
@@ -488,12 +479,9 @@ function renderTable() {
   if (!tbody) { console.error('tbody não encontrado'); return; }
   if (!state.itens || state.itens.length === 0) { tbody.innerHTML = ''; updateSum?.(); syncMasterCheckbox(); return; }
 
-  tbody.innerHTML = '';
-
-  // Linhas
-  state.itens.forEach((it, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+  // Linhas — monta tudo em uma string e aplica de uma vez (evita reflow por linha)
+  tbody.innerHTML = state.itens.map((it, idx) => `
+    <tr>
       <!-- Seleção -->
       <td style="text-align:center;">
         <input class="row-select" type="checkbox" data-idx="${idx}"
@@ -503,7 +491,30 @@ function renderTable() {
 
       <!-- Código / Descrição -->
       <td>${it.cProd ?? ''}</td>
-      <td>${it.xProd ?? ''}</td>
+      <td>
+        ${it.xProd ?? ''}
+        <button type="button" class="m-edit-toggle" aria-expanded="false">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Editar item
+        </button>
+        <div class="mobile-edit">
+          <div class="row">
+            <div>
+              <label for="mUcom${idx}">Unidade</label>
+              <input id="mUcom${idx}" class="ucom-input" data-idx="${idx}" type="text" maxlength="6"
+                     value="${(it.uCom || '').toUpperCase()}">
+            </div>
+            <div>
+              <label for="mCost${idx}">Preço de Custo (unit.)</label>
+              <input id="mCost${idx}" class="cost" data-idx="${idx}" type="text" inputmode="decimal"
+                     value="${numToInput(it.custoUnit, 2)}">
+            </div>
+          </div>
+        </div>
+      </td>
 
       <!-- Unid. (editável) -->
       <td class="ucom">
@@ -522,9 +533,8 @@ function renderTable() {
                value="${numToInput(it.custoUnit, 2)}">
       </td>
       <td class="cTotal">${formatBRL2((it.qCom || 0) * (it.custoUnit || 0))}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    </tr>
+  `).join('');
 
   // Listeners dos inputs (custos + unidade)
   tbody.querySelectorAll('input.cost').forEach(inp => {
@@ -590,14 +600,13 @@ function onCostChange(e){
   const idx = Number(e.target.dataset.idx);
   const n = toNumber(e.target.value);
   state.itens[idx].custoUnit = n;
-  const tr = e.target.closest('tr');
-  const cell = tr.querySelector('.cTotal');
-if (cell) cell.textContent = formatBRL2((state.itens[idx].qCom || 0) * n);
 
+  const tr = e.target.closest('tr');
   if (tr){
     if (Math.abs(n - state.itens[idx].vUnComNF) > 1e-9) tr.classList.add('changed'); else tr.classList.remove('changed');
+
     const cell = tr.querySelector('.cTotal');
-    if (cell) cell.textContent = formatBRL((state.itens[idx].qCom||0) * n);
+    if (cell) cell.textContent = formatBRL2((state.itens[idx].qCom || 0) * n);
 
     // espelha no “gêmeo”
     const twins = tr.querySelectorAll(`input.cost[data-idx="${idx}"]`);
@@ -791,33 +800,6 @@ function sweepClean(done){
     if (typeof done === 'function') done();
   }, 1400);
 }
-
-
-  const t0 = performance.now(), DUR = 1300;
-
-  function draw(t){
-    const k = (t - t0) / DUR;
-    ctx.clearRect(0,0,innerWidth,innerHeight);
-    for (const p of parts){
-      // leve drift
-      p.x += p.vx;
-      p.y += p.vy * (1 - k*0.3);
-      p.vx *= 0.99;
-      p.vy *= 0.99;
-      const alpha = Math.max(0, p.a * (1 - k));
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(${p.g},${p.g},${p.g},${alpha})`;
-      ctx.arc(p.x, p.y, p.r*(1+ k*0.2), 0, Math.PI*2);
-      ctx.fill();
-    }
-    if (k < 1) requestAnimationFrame(draw);
-    else {
-      cvs.remove();
-      broom.remove();
-      if (typeof done === 'function') done();
-    }
-  }
-  requestAnimationFrame(draw);
 
 function exportAlteredNFeXML(){
   if (!state._doc) { 

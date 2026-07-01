@@ -52,7 +52,7 @@ header p.desc{ margin:6px 0 0; color:#c9d1d9; font-size:clamp(13px,2.2vw,15px); 
 }
 
 /* ================== Layout base ================== */
-main{ padding:16px; max-width:980px; margin:0 auto; }
+main{ padding:16px; max-width:980px; width:100%; margin:0 auto; min-width:0; }
 .panel{
   background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
   padding:16px; box-shadow:var(--shadow);
