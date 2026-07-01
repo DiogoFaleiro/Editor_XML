@@ -184,6 +184,14 @@ function formatBRL4(n) {
         if (f) loadXMLFile(f);
       });
 
+      // Ações em massa: aplicar nova unidade aos itens selecionados/todos
+      on($id('btnBulkApply'), 'click', () => {
+        const scope = $id('bulkScope')?.value;
+        const unitInput = $id('bulkNewUnit');
+        bulkApplyUnit(unitInput?.value, scope);
+        if (unitInput) unitInput.value = '';
+      });
+
       console.log('[init] listeners prontos');
     } catch (err) {
       console.error('[init] erro:', err);
